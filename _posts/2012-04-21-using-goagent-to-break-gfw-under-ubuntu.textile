@@ -1,0 +1,7 @@
+---
+layout: post
+title: Ubuntu下使用goagent翻墙
+category: tips
+---
+
+占个位
