@@ -246,7 +246,7 @@ hr {
 	border-top:1px solid #999;
 }
 code, pre {
-	font-family:"Monaco","Courier New",monospace;
+	font-family:consolas,"Courier New",monospace;
 	font-size:12px;
 	line-height:150%;
 }
@@ -255,14 +255,14 @@ pre {
 	-webkit-border-radius:5px;
 	border-radius:5px;
 	-moz-box-shadow:0 -1px 0 #444444;
-	background-color:#222222;
-	color:#FFFFFF;
+	/*background-color:#222222;*/
+	/*color:#FFFFFF;*/
 	font-size:13px;
-	margin:0 0 0 -40px;
+	/*margin:0 0 0 -40px;*/
 	padding:20px;
-	text-shadow:0 1px 0 #000000;
+	/*text-shadow:0 1px 0 #000000;*/
 	white-space:pre-wrap;
-	width:740px;
+	/*width:740px;*/
 	word-wrap:break-word;
 }
 div.notice {
@@ -430,4 +430,14 @@ div#disqus_thread li{
 
 div#disqus_thread li ul li {
 	list-style:none;
+}
+
+div.highlight {
+	background-color: #EFEFEF;
+	border: 1px dashed #909090;
+}
+
+div#content .cnt a 
+{
+	border-bottom:1px dotted #333;
 }
