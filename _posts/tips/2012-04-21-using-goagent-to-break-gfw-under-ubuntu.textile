@@ -1,0 +1,8 @@
+---
+layout: post
+title: Ubuntu下使用goagent翻墙
+category: tips
+tags: Ubuntu goagent gfw
+---
+
+占个位
