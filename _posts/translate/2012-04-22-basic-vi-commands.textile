@@ -1,0 +1,10 @@
+---
+layout: post
+title: 基本vi命令
+category: translate
+tags: vi
+---
+
+h4. 什么是vi？
+
+UNIX操作系统的默认编辑器被称做vi（visual editor）
