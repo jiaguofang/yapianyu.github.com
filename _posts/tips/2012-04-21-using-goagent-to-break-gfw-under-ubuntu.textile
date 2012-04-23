@@ -6,3 +6,4 @@ tags: ubuntu goagent gfw
 ---
 
 占个位
+"test":http://google.com "test2":http://baidu.com
