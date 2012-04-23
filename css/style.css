@@ -330,7 +330,7 @@ span.balloon {
 #sidebar {
 	float:left;
 	margin-left:-50px;
-	text-transform:uppercase;
+	/*text-transform:uppercase;*/
 	width:20%;
 }
 
@@ -347,7 +347,7 @@ span.balloon {
 
 #content #sidebar li {
 	list-style:none;
-	font-size:14px;
+	font-size:16px;
 }
 
 #content #sidebar li a {
@@ -370,7 +370,7 @@ span.balloon {
 
 #content #sidebar li ul li a{
 	color:#999;
-	font-size:12px;
+	font-size:14px;
 }
 
 #main {

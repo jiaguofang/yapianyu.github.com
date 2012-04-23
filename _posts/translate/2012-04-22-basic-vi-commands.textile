@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 基本vi命令
-category: translate
+category: Translate
 tags: vi
 ---
 

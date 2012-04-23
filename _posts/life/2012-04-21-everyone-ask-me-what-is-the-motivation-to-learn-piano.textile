@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 很多人问我为什么要学钢琴
-category: life
+category: Life
 ---
 
 占个位

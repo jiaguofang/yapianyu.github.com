@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 鸦片鱼的钢琴之路
-category: life
+category: Life
 ---
 
 *3月24日*
