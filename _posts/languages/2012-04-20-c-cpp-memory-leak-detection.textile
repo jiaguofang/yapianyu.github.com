@@ -70,6 +70,6 @@ main.cpp(17) : {93} normal block at 0x00447CA0, 40 bytes long.
 Object dump complete.
 {% endhighlight %}
 
-Links：
+References：
 "http://dev.yesky.com/147/2356147_2.shtml":http://dev.yesky.com/147/2356147_2.shtml
 "http://www.codeproject.com/Articles/2319/Detailed-memory-leak-dumps-from-a-console-app":http://www.codeproject.com/Articles/2319/Detailed-memory-leak-dumps-from-a-console-app

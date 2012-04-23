@@ -7,4 +7,4 @@ tags: vi
 
 h4. 什么是vi？
 
-UNIX操作系统的默认编辑器被称做vi（visual editor）
+UNIX操作系统的默认编辑器被称做vi（visual editor）。UNIX环境的替代编辑器包括pico和emacs，
