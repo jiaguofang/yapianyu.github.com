@@ -9,10 +9,10 @@ table {
 fieldset,img { 
 	border:0;
 }
-address,caption,cite,code,dfn,em,strong,th,var {
+/*address,caption,cite,code,dfn,em,strong,th,var {
 	font-style:normal;
 	font-weight:normal;
-}
+}*/
 ol,ul {
 	list-style:none;
 }
@@ -205,6 +205,7 @@ h2 {
 
 h4 {
 	margin:20px 0;
+	font-size:20px;
 }
 
 h5 {
@@ -227,9 +228,10 @@ div#content li ul li {
 	margin:20px -20px;
 	padding:10px 20px;
 }
+/*
 h4 {
 	font-size:20px;
-}
+}*/
 ul.columns {
 	-moz-column-gap:20px;
 	-moz-column-width:215px;
@@ -251,13 +253,13 @@ code, pre {
 	line-height:150%;
 }
 pre {
-	-moz-border-radius:5px 5px 5px 5px;
+	/*-moz-border-radius:5px 5px 5px 5px;
 	-webkit-border-radius:5px;
 	border-radius:5px;
-	-moz-box-shadow:0 -1px 0 #444444;
+	-moz-box-shadow:0 -1px 0 #444444;*/
 	/*background-color:#222222;*/
 	/*color:#FFFFFF;*/
-	font-size:13px;
+	/*font-size:13px;*/
 	/*margin:0 0 0 -40px;*/
 	padding:20px;
 	/*text-shadow:0 1px 0 #000000;*/
@@ -283,12 +285,16 @@ blockquote {
 	font-style:italic;
 	margin: 30px;
 }
+/*
 div#disqus_thread {
 	margin:50px 0 0;
-}
+}*/
+
 div.dsq-options, div.dsq-sharing-options, div.dsq-dc-logo, div#dsq-global-toolbar, div#dsq-pagination {
 	display:none !important;
 }
+
+/*
 p.article_date {
 	float:left;
 	margin:0;
@@ -300,10 +306,13 @@ span#article_buttons {
 }
 span#article_buttons a {
 	display:block;
-}
-a:hover span.balloon {
+}*/
+
+a:hover {
 	display:inline;
 }
+
+/*
 span.balloon {
 	-moz-border-radius:5px 5px 5px 5px;
 	-moz-box-shadow:0 -1px 0 #444444;
@@ -316,7 +325,7 @@ span.balloon {
 	margin:0 5px;
 	padding:3px 5px;
 	text-shadow:0 1px 0 #000000;
-}
+}*/
 
 #sidebar {
 	float:left;
@@ -401,7 +410,7 @@ span.balloon {
 	margin: 20px 0;
 }
 
-#feed .badget {
+/*#feed .badget {
 	line-height:100%;
 	border:1px solid #999;
 	background:#ddd;
@@ -426,9 +435,9 @@ span.balloon {
 
 div#disqus_thread li{
 	list-style:none;
-}
+}*/
 
-div#disqus_thread li ul li {
+div#disqus_thread ul li {
 	list-style:none;
 }
 
