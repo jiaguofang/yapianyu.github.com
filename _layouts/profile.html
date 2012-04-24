@@ -14,15 +14,15 @@
 				<div id="sidebar">
 					<ul>
 						<li>
-							<a href="/">Articles({{ site.posts | size }})</a>
+							<a href="/">articles({{ site.posts | size }})</a>
 							<ul>
 								{% for category in site.categories %}
 								<li><a href="/{{ category[0] | downcase }}.html">{{ category[0] }}({{ category | last | size }})</a></li>
 								{% endfor %}
 							</ul>
 						</li>
-						<li><a href="/resume.html">Resume</a></li>
-						<li><a href="/about.html">About</a></li>
+						<li><a href="/resume.html">resume</a></li>
+						<li><a href="/about.html">about</a></li>
 					</ul>
 				</div>
 				

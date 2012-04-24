@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Instagram Engineering
-category: Translate
+category: translate
 tags: instagram
 ---
 

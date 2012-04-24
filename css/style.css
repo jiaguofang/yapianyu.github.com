@@ -334,7 +334,7 @@ span.balloon {
 #sidebar {
 	float:left;
 	margin-left:-50px;
-	/*text-transform:uppercase;*/
+	text-transform:capitalize;
 	width:20%;
 }
 
