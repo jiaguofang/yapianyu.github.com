@@ -5,5 +5,13 @@ category: tips
 tags: ubuntu goagent gfw
 ---
 
-{{ page.date }}
-占个位
+在<a href="http://xanpeng.github.com">Xan Peng</a>的强烈推荐下
+# 在Google App Engine上创建Application，并记住<app id>
+# 下载并解压goagent稳定版和Google App Engine SDK For Python
+# 修改goagent/local/proxy.ini中[gae]段落下的appid=<app id>（多appid请用|隔开）
+# 修改goagent/server/python/app.yaml中的application字段为<app id>
+# 用App Engine上传：$ python google_appengine/appcfg.py update goagent/server/python/
+# 运行$ python goagent/local/proxy.py（即可用代理127.0.0.1:8087）
+# 为Chrome安装SwitchySharp插件，然后在Import/Export栏目下导入设置http://goagent.googlecode.com/files/SwitchyOptions.bak
+# 导入goagent证书goagent/local/CA.crt，Settings->HTTPS/SSL->Manage Certificates->Authorities->Import...
+# 开机自动启动，在~/.profile里添加python /home/yapianyu/work/Installation/goagent/local/proxy.py > /dev/null 2>&1 &
