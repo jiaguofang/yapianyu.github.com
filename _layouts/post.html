@@ -16,7 +16,17 @@
 					<p class="date">{{ page.date | date:"%Y-%m-%d" }}</p>
 					{{ content }}
 					<p>--EOF--</p>
-					<p>若无特别说明，本站文章均为原创，转载请保留链接，谢谢!</p>
+					<p class="prev-next">
+						{% if page.previous.url %}
+							«&nbsp;<a href="{{ page.previous.url }}">{{ page.previous.title }}</a>
+						{% endif %}
+						{% if page.next.url and page.previous.url%}
+							&nbsp;|&nbsp;
+						{% endif %}
+						{% if page.next.url %}
+							<a href="{{ page.next.url }}">{{ page.next.title }}</a>&nbsp;»
+						{% endif %}
+					</p>
 				</div>
 				<div id="disqus_thread"></div>
 				<script type="text/javascript">
@@ -34,4 +44,3 @@
 		</div>
 	</body>
 </html>
-
