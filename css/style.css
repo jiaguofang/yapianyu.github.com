@@ -384,10 +384,10 @@ span.balloon {
 
 #main h1 {
 	color: #444444;
-    font-size: 24px;
-    font-weight: bold;
-    margin: 8px 0 18px;
-    padding: 5px;
+	font-size: 24px;
+	font-weight: bold;
+	margin: 0 0 18px;
+	padding: 5px;
 	-moz-border-radius:5px;
 	-webki-border-radius:5px;
 	border-radius:5px;
