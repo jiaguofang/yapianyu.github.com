@@ -410,6 +410,12 @@ span.balloon {
 	letter-spacing:3px;
 }
 
+#logo div {
+	font-size:35px;
+	color:#fff;
+	float:right;
+}
+
 #content .cnt p {
 	margin: 20px 0;
 }
