@@ -7,7 +7,7 @@ tags: c c++ memory leak
 
 本文利用MS C-Runtime Library的Debug function对内存泄漏进行检测。
 
-h3. Step 1. 创建LeakWatcher.h
+### Step 1. 创建LeakWatcher.h
 
 将new和malloc重新定义，malloc最终会调用_malloc_dbg，此时传入文件名和行号就能准确地定位内存泄漏的代码
 
@@ -33,7 +33,7 @@ void* operator new(size_t nSize, const char * lpszFileName, int nLine)
 #endif // LEAKWATCHER
 {% endhighlight %}
 
-h3. Step 2. 在每个待检测的CPP中加入如下宏定义，并在程序入口处调用_CrtSetDbgFlag
+### Step 2. 在每个待检测的CPP中加入如下宏定义，并在程序入口处调用_CrtSetDbgFlag
 
 {% highlight cpp %}
 #include "LeakWatcher.h"
@@ -70,6 +70,6 @@ main.cpp(17) : {93} normal block at 0x00447CA0, 40 bytes long.
 Object dump complete.
 {% endhighlight %}
 
-References：
-"http://dev.yesky.com/147/2356147_2.shtml":http://dev.yesky.com/147/2356147_2.shtml
-"http://www.codeproject.com/Articles/2319/Detailed-memory-leak-dumps-from-a-console-app":http://www.codeproject.com/Articles/2319/Detailed-memory-leak-dumps-from-a-console-app
+References：  
+[http://dev.yesky.com/147/2356147_2.shtml](http://dev.yesky.com/147/2356147_2.shtml)  
+[http://www.codeproject.com/Articles/2319/Detailed-memory-leak-dumps-from-a-console-app](http://www.codeproject.com/Articles/2319/Detailed-memory-leak-dumps-from-a-console-app)
