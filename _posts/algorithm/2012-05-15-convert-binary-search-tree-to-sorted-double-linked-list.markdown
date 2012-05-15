@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 把二叉查找树转变成排序的双向链表
+title: 算法001. 把二叉查找树转变成排序的双向链表
 category: algorithm
 tags: algorithm tree list
 ---
