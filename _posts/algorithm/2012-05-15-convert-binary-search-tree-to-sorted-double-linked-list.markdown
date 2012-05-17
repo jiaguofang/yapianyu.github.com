@@ -27,9 +27,9 @@ using namespace std;
 // define binary search tree node
 struct Node
 {
-	int value;
-	Node* left;
-	Node* right;
+	int m_value;
+	Node* m_left;
+	Node* m_right;
 };
 
 // return <min, max> node pair within tree
@@ -39,24 +39,23 @@ pair<Node *, Node *> ConvertTreeToDoublelinkedList(Node* root)
 		return make_pair<Node *, Node *> (NULL, NULL);
 
 	pair<Node *, Node *> left = make_pair<Node *, Node *> (root, root);
-	if (root->left)
+	if (root->m_left)
 	{
 		// convert left sub-tree
-		left = ConvertTreeToDoublelinkedList(root->left);
-		root->left = left.second;
-		left.second->right = root;
+		left = ConvertTreeToDoublelinkedList(root->m_left);
+		root->m_left = left.second;
+		left.second->m_right = root;
 	}
 
 	pair<Node *, Node *> right = make_pair<Node *, Node *> (root, root);
-	if (root->right)
+	if (root->m_right)
 	{
 		// convert right sub-tree
-		right = ConvertTreeToDoublelinkedList(root->right);
-		root->right = right.first;
-		right.first->left = root;
+		right = ConvertTreeToDoublelinkedList(root->m_right);
+		root->m_right = right.first;
+		right.first->m_left = root;
 	}
 
 	return make_pair<Node *, Node *> (left.first, right.second);
 }
-
 {% endhighlight %}

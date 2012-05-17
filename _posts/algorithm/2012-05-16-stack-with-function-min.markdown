@@ -2,7 +2,7 @@
 layout: post
 title: 算法002. 设计包含min函数的栈
 category: algorithm
-tags: algorithm tree list
+tags: algorithm stack
 ---
 
 ###题目###
