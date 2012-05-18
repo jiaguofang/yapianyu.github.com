@@ -24,7 +24,7 @@ using namespace std;
 int MaxSum(int a[], int n)
 {
 	int max_sum = 0;
-	int sum_i = 0; // sum of the sub-array ended with a[i]
+	int sum_i = 0; // max sum of the sub-array ended with a[i]
 	for (int i = 0; i < n; i++)
 	{
 		if (i == 0)
