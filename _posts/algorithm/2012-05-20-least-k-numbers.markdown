@@ -21,6 +21,8 @@ tags: algorithm
 4\. [快速选择](http://en.wikipedia.org/wiki/Selection_algorithm)：利用快速排序的思想，选取合适的枢纽元(三数中值、随机)，每次将数组分为小于枢纽元(k1)和大于枢纽元(k2)两部分。如果k小于k1，则递归地在前半部分查找最小的k个数。否则在后半部分查找最小的k-k2个数。该算法的**平均时间复杂度为O(n)**。*值得注意的是快速选择(排序)算法需要把整个数组全部载入内存，当n特别巨大时，该算法不能适用*。
 
 ###参考代码###
+这里实现快速选择算法：
+
 {% highlight cpp %}
 #include <algorithm>
 using namespace std;
