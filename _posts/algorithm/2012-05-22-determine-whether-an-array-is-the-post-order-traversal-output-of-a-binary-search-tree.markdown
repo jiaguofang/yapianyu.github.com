@@ -1,6 +1,6 @@
 ---
 layout: post
-title: hht算法006. 判断某数组是不是二叉查找树的后序遍历结果
+title: hht算法006. 判断数组是不是二叉查找树的后序遍历结果
 category: algorithm
 tags: algorithm BST post-order
 ---
