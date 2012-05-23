@@ -32,8 +32,13 @@ struct Node
 	Node* m_right;
 };
 
-// return <min, max> node pair within tree
-pair<Node *, Node *> ConvertTreeToDoublelinkedList(Node* root)
+/**
+ * Convert a binary search tree to a double linked list.
+ *
+ * @param root Root node of the binary search tree.
+ * @return <min, max> node pair of the binary search tree.
+ */
+pair<Node *, Node *> ConvertBSTToDoublelinkedList(Node* root)
 {
 	if (!root)
 		return make_pair<Node *, Node *> (NULL, NULL);
@@ -42,7 +47,7 @@ pair<Node *, Node *> ConvertTreeToDoublelinkedList(Node* root)
 	if (root->m_left)
 	{
 		// convert left sub-tree
-		left = ConvertTreeToDoublelinkedList(root->m_left);
+		left = ConvertBSTToDoublelinkedList(root->m_left);
 		root->m_left = left.second;
 		left.second->m_right = root;
 	}
@@ -51,7 +56,7 @@ pair<Node *, Node *> ConvertTreeToDoublelinkedList(Node* root)
 	if (root->m_right)
 	{
 		// convert right sub-tree
-		right = ConvertTreeToDoublelinkedList(root->m_right);
+		right = ConvertBSTToDoublelinkedList(root->m_right);
 		root->m_right = right.first;
 		right.first->m_left = root;
 	}
