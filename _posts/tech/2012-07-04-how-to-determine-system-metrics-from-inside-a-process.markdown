@@ -30,8 +30,7 @@ GetProcessCPUUsage()。打开任务管理器，可以看到：
 期的比值。
 
 ####Windiws####
-MSDN对
-[GetSystemTimes()](http://msdn.microsoft.com/en-us/library/ms724400\(VS.85\).aspx)
+MSDN对[GetSystemTimes()](http://msdn.microsoft.com/en-us/library/ms724400\(VS.85\).aspx)
 是这样描述的：
 {% highlight cpp %}
 /**
@@ -62,13 +61,12 @@ BOOL WINAPI GetSystemTimes(
 
 因此，**CPU% = (Δt\_kernel + Δt\_user - Δt\_idle) / (Δt\_kernel + Δt\_user)**。
 
-代码参见[double
-SystemInfo::GetSystemCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/SystemInfo.cpp)
+代码参见 [double SystemInfo::GetSystemCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/SystemInfo.cpp)
 
 ####Linux####
-Linux将各种系统状态统计信息保存在/proc/stat文件中，比如CPU运行情况、中断统计、启
+Linux将各种系统状态统计信息保存在文件/proc/stat中，比如CPU运行情况、中断统计、启
 动时间、上下文切换次数、运行中的进程等等。在我的ubuntu 11.10中运行`cat /proc/stat`
-，输出如下：
+，输出：
 {% highlight text %}
 > cat /proc/stat
 cpu  204090 1068 325035 33868070 91116 2 5869 0 0 0
@@ -95,10 +93,9 @@ Manual](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)这样
 > the idle task, respectively.
 
 因此，**CPU% = (Δt\_user + Δt\_nice + Δt\_system) / (Δt\_user + Δt\_nice + Δ
-t\_system + Δt\_idle)**。
+t\_kernel + Δt\_idle)**。
 
-代码参见[double
-SystemInfo::GetSystemCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/SystemInfo.cpp)
+代码参见 [double SystemInfo::GetSystemCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/SystemInfo.cpp)
 
 ###系统物理内存总大小###
 Windows和Linux都有现成的API：
@@ -192,15 +189,88 @@ BOOL WINAPI GetProcessTimes(
 
 因此，**CPU% = (Δt\_proc\_kernel + Δt\_proc\_user) / (Δt\_sys\_kernel + Δt\_sys\_user)**。
 
-代码参见[double
-ProcessInfo::GetProcessCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
+代码参见 [double ProcessInfo::GetProcessCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
 
 ####Linux####
-Linux下可以通过读取/proc/[pid]/stat文件获得进程在kernel和user mode下的运行时间。在
-我的ubuntu 11.10中运行`cat /proc/3761/stat`，输出如下：
+Linux下可以通过读取文件/proc/[pid]/stat获得进程在kernel和user mode下的运行时间。在
+我的ubuntu 11.10中运行`cat /proc/3761/stat`，输出：
 {% highlight cpp %}
 > cat /proc/3761/stat
 3761 (chrome) S 3654 1925 1925 0 -1 4202560 640712 0 191 0 31802 58992 0 0 20 0
 8 0 2980922 1031110656 10654 18446744073709551615 1 1 0 0 0 0 0 67112962 65536
 18446744073709551615 0 0 17 1 0 0 305 0 0
 {% endhighlight %}
+这里最关键的是第14和15个（31802和58992）数据，分别表示进程在user和kernel mode下
+的运行时间。
+
+> utime %lu  
+> Amount of time that this process has been scheduled in user
+> mode, measured in clock ticks (divide by sysconf(_SC_CLK_TCK). This
+> includes guest time, guest_time (time spent running a virtual CPU, see
+> below), so that applications that are not aware of the guest time field do
+> not lose that time from their calculations.
+
+> stime %lu  
+> Amount of time that this process has been scheduled in
+> kernel mode, measured in clock ticks (divide by sysconf(_SC_CLK_TCK).
+
+因此，**CPU% = (Δt\_proc\_user + Δt\_proc\_kernel) / (Δt\_sys\_user + Δt\_sys\_nice + Δ
+t\_sys\_kernel + Δt\_sys\_idle)**。
+
+代码参见 [double ProcessInfo::GetProcessCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
+
+###进程物理内存使用量###
+####Windows####
+调用Windows API [GetProcessMemoryInfo()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683219\(v=vs.85\).aspx)，
+可以得到结构体
+[PROCESS_MEMORY_COUNTERS](http://msdn.microsoft.com/en-us/library/windows/desktop/ms684877\(v=vs.85\).aspx)。
+其定义如下：
+{% highlight cpp %}
+typedef struct _PROCESS_MEMORY_COUNTERS {
+  DWORD  cb;
+  DWORD  PageFaultCount;
+  SIZE_T PeakWorkingSetSize;
+  SIZE_T WorkingSetSize; // The current working set size, in bytes.
+  SIZE_T QuotaPeakPagedPoolUsage;
+  SIZE_T QuotaPagedPoolUsage;
+  SIZE_T QuotaPeakNonPagedPoolUsage;
+  SIZE_T QuotaNonPagedPoolUsage;
+  SIZE_T PagefileUsage;
+  SIZE_T PeakPagefileUsage;
+} PROCESS_MEMORY_COUNTERS, *PPROCESS_MEMORY_COUNTERS;
+{% endhighlight %}
+属性WorkingSetSize表示进程占用的物理内存大小。
+
+####Linux####
+Linux下可以读取文件/proc/[pid]/status，其中以VmRSS开头的一行就表示进程占用的物理
+内存大小，示例如下：
+{% highlight text %}
+> cat /proc/1730/status
+Name:   chrome
+State:  S (sleeping)
+Tgid:   1730
+Pid:    1730
+PPid:   1
+TracerPid:  0
+Uid:    1000    1000    1000    1000
+Gid:    1000    1000    1000    1000
+FDSize: 512
+Groups: 4 20 24 46 116 118 124 1000 
+VmPeak:  1229704 kB
+VmSize:  1093232 kB
+VmLck:        16 kB
+VmHWM:    695656 kB
+VmRSS:    158156 kB
+VmData:   944400 kB
+VmStk:       136 kB
+VmExe:     62128 kB
+VmLib:     31020 kB
+VmPTE:      1152 kB
+VmSwap:        0 kB
+Threads:    62
+SigQ:   0/15999
+{% endhighlight %}
+
+代码参见 [double ProcessInfo::GetProcessMemoryUsed()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
+
+
