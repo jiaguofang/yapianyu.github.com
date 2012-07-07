@@ -5,7 +5,7 @@ category: tech
 tags: CPU使用率 内存使用量 uptime 线程数 C++
 ---
 
-为了监控公司某项目的运行情况，需要在进程内部获取系统和进程的状态参数，谷歌一番之后在这里做个总结。内容有：
+为了监控公司某项目的运行情况，需要在进程内部获取系统和进程的状态参数，谷歌一番之后在这里做个总结。内容涉及：
 
 * 系统CPU使用率  
 * 系统物理内存总大小  
@@ -19,7 +19,7 @@ tags: CPU使用率 内存使用量 uptime 线程数 C++
 
 ###系统CPU使用率###
 关于CPU使用率，首先必须澄清并不存在现成的API，如GetSystemCPUUsage()或者
-GetProcessCPUUsage()。打开任务管理器，可以看到：
+GetProcessCPUUsage()。当我们打开任务管理器，可以看到：
 
 * CPU使用率包括系统的CPU使用率和进程的CPU使用率
 * CPU使用率每隔一定时间会刷新一次
@@ -30,8 +30,8 @@ GetProcessCPUUsage()。打开任务管理器，可以看到：
 期的比值。
 
 ####Windiws####
-MSDN对[GetSystemTimes()](http://msdn.microsoft.com/en-us/library/ms724400\(VS.85\).aspx)
-是这样描述的：
+函数[GetSystemTimes()](http://msdn.microsoft.com/en-us/library/ms724400\(VS.85\).aspx)
+可以用来获取系统idle的时间、运行在kernel和user模式下的时间，MSDN是这样描述的：
 {% highlight cpp %}
 /**
  * Retrieves system timing information. On a multiprocessor system, the values
@@ -56,15 +56,13 @@ BOOL WINAPI GetSystemTimes(
 注意到三点：
 
 * GetSystemTimes的每个返回值都是所有处理器上的时间和
-* t\_idle已经包括在t\_kernel中
+* t\_idle已经包括在t\_kernel中，计算系统有效运行时间时必须排除掉它
 * t\_kernel + t\_user ≈ 采样周期 × 处理器数量
 
 因此，**CPU% = (Δt\_kernel + Δt\_user - Δt\_idle) / (Δt\_kernel + Δt\_user)**。
 
-代码参见 [double SystemInfo::GetSystemCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/SystemInfo.cpp)
-
 ####Linux####
-Linux将各种系统状态统计信息保存在文件/proc/stat中，比如CPU运行情况、中断统计、启
+Linux将各种系统状态信息保存在文件/proc/stat中，比如CPU运行情况、中断统计、启
 动时间、上下文切换次数、运行中的进程等等。在我的ubuntu 11.10中运行`cat /proc/stat`
 ，输出：
 {% highlight text %}
@@ -81,7 +79,7 @@ procs_running 1
 procs_blocked 0
 softirq 15551046 0 3479000 34799 511332 489536 0 21879 2048010 12831 8953659
 {% endhighlight %}
-第一行是所有CPU的统计信息汇总，后面的'cpuN'分别表示每个CPU的统计信息，因为我们的
+第一行是所有CPU的统计信息汇总，后面几行'cpuN'分别表示每个CPU的统计信息，因为我们的
 目标是求得CPU的整体使用率，所以只需要关注第一行即可。[Linux Programmer's
 Manual](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)这样描
 述/proc/stat：
@@ -98,7 +96,7 @@ t\_kernel + Δt\_idle)**。
 代码参见 [double SystemInfo::GetSystemCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/SystemInfo.cpp)
 
 ###系统物理内存总大小###
-Windows和Linux都有现成的API：
+Windows和Linux有各自的API：
 [GlobalMemoryStatusEx()](http://msdn.microsoft.com/en-us/library/windows/desktop/aa366589\(v=vs.85\).aspx)
 和[sysinfo()](http://linux.die.net/man/2/sysinfo)。
 
@@ -162,9 +160,8 @@ double SystemInfo::GetSystemMemoryUsed()
 采样周期的比值。
 
 ####Windiws####
-我们可以通过调用GetProcessTimes()来获取进程在kernel和user mode下的运行时间。MSDN对
-[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)
-是这样描述的：
+函数[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)
+可以用来获取进程在kernel和user模式下的运行时间。MSDN是这样描述的：
 {% highlight cpp %}
 /**
  * Retrieves timing information for the specified process.
@@ -189,10 +186,8 @@ BOOL WINAPI GetProcessTimes(
 
 因此，**CPU% = (Δt\_proc\_kernel + Δt\_proc\_user) / (Δt\_sys\_kernel + Δt\_sys\_user)**。
 
-代码参见 [double ProcessInfo::GetProcessCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
-
 ####Linux####
-Linux下可以通过读取文件/proc/[pid]/stat获得进程在kernel和user mode下的运行时间。在
+Linux下可以通过读取文件/proc/[pid]/stat获得进程在kernel和user模式下的运行时间。在
 我的ubuntu 11.10中运行`cat /proc/3761/stat`，输出：
 {% highlight cpp %}
 > cat /proc/3761/stat
@@ -200,7 +195,7 @@ Linux下可以通过读取文件/proc/[pid]/stat获得进程在kernel和user mod
 8 0 2980922 1031110656 10654 18446744073709551615 1 1 0 0 0 0 0 67112962 65536
 18446744073709551615 0 0 17 1 0 0 305 0 0
 {% endhighlight %}
-这里最关键的是第14和15个（31802和58992）数据，分别表示进程在user和kernel mode下
+这里最关键的是第14和第15个参数（31802和58992），分别表示进程在user和kernel模式下
 的运行时间。
 
 > utime %lu  
@@ -221,9 +216,9 @@ t\_sys\_kernel + Δt\_sys\_idle)**。
 
 ###进程物理内存使用量###
 ####Windows####
-调用Windows API [GetProcessMemoryInfo()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683219\(v=vs.85\).aspx)，
-可以得到结构体
-[PROCESS_MEMORY_COUNTERS](http://msdn.microsoft.com/en-us/library/windows/desktop/ms684877\(v=vs.85\).aspx)。
+结构体[PROCESS_MEMORY_COUNTERS](http://msdn.microsoft.com/en-us/library/windows/desktop/ms684877\(v=vs.85\).aspx)
+的属性WorkingSetSize表示进程占用的物理内存大小，可以通过函数
+[GetProcessMemoryInfo()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683219\(v=vs.85\).aspx)获取。
 其定义如下：
 {% highlight cpp %}
 typedef struct _PROCESS_MEMORY_COUNTERS {
@@ -239,11 +234,9 @@ typedef struct _PROCESS_MEMORY_COUNTERS {
   SIZE_T PeakPagefileUsage;
 } PROCESS_MEMORY_COUNTERS, *PPROCESS_MEMORY_COUNTERS;
 {% endhighlight %}
-属性WorkingSetSize表示进程占用的物理内存大小。
 
 ####Linux####
-Linux下可以读取文件/proc/[pid]/status，其中以VmRSS开头的一行就表示进程占用的物理
-内存大小，示例如下：
+文件/proc/[pid]/status中以VmRSS开头的一行表示进程占用的物理内存大小，示例如下：
 {% highlight text %}
 > cat /proc/1730/status
 Name:   chrome
@@ -273,4 +266,79 @@ SigQ:   0/15999
 
 代码参见 [double ProcessInfo::GetProcessMemoryUsed()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
 
+###进程uptime###
+####Windows####
+函数[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)
+可以获取进程的创建时间，再调用函数
+[GetSystemTimeAsFileTime](http://msdn.microsoft.com/en-us/library/windows/desktop/ms724397\(v=vs.85\).aspx)
+可以得到系统的当前时间，两者相减就是进程的uptime。
 
+####Linux####
+文件/proc/[pid]/stat的第22个参数
+[starttime](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)
+表示进程的起始时间（自系统启动后，单位jiffies），再调用[sysinfo()](http://linux.die.net/man/2/sysinfo)
+可以得到系统的运行时间（自系统启动后，单位s），两者单位统一后相减就是进程的uptime。
+
+> starttime %llu (was %lu before Linux 2.6)  
+> The time in jiffies the process started after system boot.
+
+代码参见 [double ProcessInfo::GetProcessUptime()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
+
+###进程内部的线程数###
+文件/proc/[pid]/stat的第20个参数
+[num_threads](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)
+表示进程内部的线程数，直接读取并解析即可。
+
+> num_threads %ld  
+> Number of threads in this process (since Linux 2.6).
+
+{% highlight cpp %}
+unsigned long ProcessInfo::GetProcessThreadCount()
+{
+    unsigned long lThreadCnt = -1;
+
+#ifdef _WIN32
+    // get a process list snapshot
+    HANDLE lSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPALL, 0);
+    if (lSnapshot != NULL)
+    {
+        // initialize the process entry structure
+        PROCESSENTRY32 lEntry;
+        lEntry.dwSize = sizeof(PROCESSENTRY32);
+
+        // get the first process info
+        BOOL lSuccess = Process32First(lSnapshot, &lEntry);
+        while (lSuccess)
+        {
+            if (lEntry.th32ProcessID == mProcessId)
+            {
+                lThreadCnt = lEntry.cntThreads;
+                break;
+            }
+            lSuccess = Process32Next(lSnapshot, &lEntry);
+        }
+
+        CloseHandle(lSnapshot);
+    }
+
+#elif defined(__linux__)
+    // the 20th value in file /proc/[pid]/stat:
+    // num_threads %ld, Number of threads in this process
+    char lFileName[256];
+    sprintf(lFileName, "/proc/%d/stat", mProcessId);
+    FILE* lpFile = fopen(lFileName, "r");
+    if (lpFile)
+    {
+        // skip unnecessary content
+        char lTemp[LINEBUFFLEN];
+        int lValuesToSkip = 19;
+        for (int i = 0; i < lValuesToSkip; i++)
+            fscanf(lpFile, "%s", lTemp);
+        fscanf(lpFile, "%lu", &lThreadCnt);
+        fclose(lpFile);
+    }
+
+#endif
+    return lThreadCnt;
+}
+{% endhighlight %}
