@@ -342,3 +342,42 @@ unsigned long ProcessInfo::GetProcessThreadCount()
     return lThreadCnt;
 }
 {% endhighlight %}
+
+###扩展阅读——System Idle Process###
+之前一直没搞明白Windows空闲进程的含义，于是搬来wiki上对
+[System Idle Process](http://en.wikipedia.org/wiki/System_Idle_Process)的解释，如下：
+
+> In Windows NT operating systems, the System Idle Process contains one or more
+> kernel threads which run when no other runnable thread can be scheduled on a
+> CPU. For example, there may be no runnable thread in the system, or all
+> runnable threads are already running on a different CPU. In a multiprocessor
+> system, there is one idle thread associated with each CPU.
+
+> The primary purpose of the idle process and its threads is to eliminate what
+> would otherwise be a special case in the scheduler. Without the idle threads,
+> there could be cases when no threads were runnable, or "Ready" in terms of
+> Windows scheduling states. Since the idle threads are always in a Ready state
+> (if not already Running), this can never happen. Thus whenever the scheduler
+> is called due to the current thread leaving the CPU, it can always find
+> another thread to run on that CPU, even if it is only the CPU's idle thread.
+
+> The scheduler will never select an idle thread for execution on a given CPU if
+> there are any other threads eligible to run on that CPU. The CPU time
+> attributed to the idle process is therefore indicative of the amount of CPU
+> time that is not needed or wanted by any other processes in the system.
+
+> The scheduler treats the idle threads as special cases in terms of thread
+> scheduling priority. All other threads have a priority in the range 0 through
+> 31, inclusive, with higher priorities always preempting lower. The idle
+> threads do have a priority member in their thread objects but this data is not
+> used to determine when to run them. Instead the scheduler selects the idle
+> thread for a CPU whenever there are no threads in the priority range 0 through
+> 31 that can run on the CPU. It is as if the idle threads each have a priority
+> of negative one. It is not possible to create additional threads that are
+> scheduling peers of the idle threads, even from kernel mode.
+
+意思大致是：空闲进程的主要目的是在没有其它可以运行（或者叫Ready状态）的任
+务时，为系统提供最后的选择。在这种情形下，如果没有空闲进程，处理器就需要做出特殊
+处理。空闲进程正是为了避免这种情形而被定义的。另外，空闲进程内部往往有一个或多个
+内核（kernel）线程，在调度器执行调度时，它的优先级是最低的（可以把它想象成负的优
+先级），只有当没有可调度的任务时，它才会被选中。
