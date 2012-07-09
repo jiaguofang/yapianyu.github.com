@@ -5,7 +5,7 @@ category: tech
 tags: CPU使用率 内存使用量 uptime 线程数 C++
 ---
 
-为了监控公司某项目的运行情况，需要在进程内部获取系统和进程的状态参数，谷歌一番之后在这里做个总结。内容涉及：
+公司某项目需要监控系统以及内部进程的运行状况，谷歌一番之后在这里做个总结。内容涉及：
 
 * 系统CPU使用率  
 * 系统物理内存总大小  
@@ -19,10 +19,10 @@ tags: CPU使用率 内存使用量 uptime 线程数 C++
 
 ###系统CPU使用率###
 关于CPU使用率，首先必须澄清并不存在现成的API，如GetSystemCPUUsage()或者
-GetProcessCPUUsage()。当我们打开任务管理器，可以看到：
+GetProcessCPUUsage()。当我们打开任务管理器时，可以看到：
 
 * CPU使用率包括系统的CPU使用率和进程的CPU使用率
-* CPU使用率每隔一定时间会刷新一次
+* CPU使用率每隔一段时间会刷新一次
 
 ![](/image/windows-task-manager.png)  
 也就是说，CPU使用率是采样周期内CPU忙（非空闲）的时间和采样周期的比值，是一个平均
