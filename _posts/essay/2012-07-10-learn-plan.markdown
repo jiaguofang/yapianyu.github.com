@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 学习计划
+title: 暂定学习计划
 category: essay
 tags: 学习 计划
 ---
