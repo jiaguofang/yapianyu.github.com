@@ -1,8 +1,8 @@
 ---
 layout: post
-title: 鸦片鱼的技术提升之路
+title: 学习计划
 category: essay
-tags: 学习 提升
+tags: 学习 计划
 ---
 
 刚刚花三四周时间完成了公司某项目的一个小模块，然后……然后就开始闲着了，闲着闲着就
