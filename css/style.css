@@ -286,8 +286,12 @@ em {
 	font-style:italic;
 }
 blockquote {
-	font-style:italic;
-	margin: 30px;
+/*	font-style:italic;
+	margin: 30px;*/
+	margin: 20px 0;
+/*	color: #999;*/
+	border-left: 2px solid;
+/*	padding-left: 20px;*/
 }
 /*
 div#disqus_thread {
