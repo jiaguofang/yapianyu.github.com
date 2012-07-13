@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 编程获取获取CPU使用率、内存使用量、uptime、线程数等系统状态参数
-category: tech
+category: os
 tags: CPU使用率 内存使用量 uptime 线程数 C++
 ---
 
