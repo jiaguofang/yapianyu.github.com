@@ -27,15 +27,15 @@ class ReferenceCounted
 public:
     ReferenceCounted()
     {
-        m_Counter = 0;
+        m_counter = 0;
     }
     void AddRef()
     {
-        ++m_Counter;
+        ++m_counter;
     }
     void Release()
     {
-        if (m_Counter > 0 && --m_Counter == 0)
+        if (m_counter > 0 && --m_counter == 0)
         {
             delete this;
         }
@@ -45,7 +45,7 @@ protected:
     virtual ~ReferenceCounted(){}
 private:
     // 引用计数
-    int m_Counter;
+    int m_counter;
 };
 
 #endif
@@ -60,14 +60,14 @@ class MyClass : public ReferenceCounted
 public:
     MyClass()
     {
-        num = 0;
+        m_num = 0;
     }
     int MyFoo()
     {
-        ++num;
-        return num;
+        ++m_num;
+        return m_num;
     }
-    int num;
+    int m_num;
 protected:
     ~MyClass(){}
 };
@@ -103,7 +103,7 @@ public:
     T* Get();
 private:
     void Dispose();
-    T *ptr;
+    T *m_ptr;
 };
 
 // 用法
@@ -112,10 +112,10 @@ private:
 template <class T>
 SmartPtr<T>::SmartPtr(T *p)
 {
-    ptr = p;
-    if (ptr)
+    m_ptr = p;
+    if (m_ptr)
     {
-        ptr->AddRef();
+        m_ptr->AddRef();
     }
 }
 
@@ -126,10 +126,10 @@ SmartPtr<T>::SmartPtr(T *p)
 template <class T>
 SmartPtr<T>::SmartPtr(const SmartPtr<T> &p)
 {
-    ptr = p.ptr;
-    if (ptr)
+    m_ptr = p.m_ptr;
+    if (m_ptr)
     {
-        ptr->AddRef();
+        m_ptr->AddRef();
     }
 }
 
@@ -149,33 +149,33 @@ SmartPtr<T>& SmartPtr<T>::operator =(const T *p)
 template <class T>
 SmartPtr<T>& SmartPtr<T>::operator =(const SmartPtr<T> &p)
 {
-    Reset(p.ptr);
+    Reset(p.m_ptr);
     return *this;
 }
 
 template <class T>
 T& SmartPtr<T>::operator *() const
 {
-    return *ptr;
+    return *m_ptr;
 }
 
 template <class T>
 T* SmartPtr<T>::operator ->() const
 {
-    return ptr;
+    return m_ptr;
 }
 
 template <class T>
 void SmartPtr<T>::Reset(T *p)
 {
     // 避免自赋值self-assignment
-    if (ptr != p)
+    if (m_ptr != p)
     {
         Dispose();
-        ptr = p;
-        if (ptr)
+        m_ptr = p;
+        if (m_ptr)
         {
-            ptr->AddRef();
+            m_ptr->AddRef();
         }
     }
 }
@@ -183,15 +183,15 @@ void SmartPtr<T>::Reset(T *p)
 template <class T>
 T* SmartPtr<T>::Get()
 {
-    return ptr;
+    return m_ptr;
 }
 
 template <class T>
 void SmartPtr<T>::Dispose()
 {
-    if (ptr)
+    if (m_ptr)
     {
-        ptr->Release();
+        m_ptr->Release();
     }
 }
 
