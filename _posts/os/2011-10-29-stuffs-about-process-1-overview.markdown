@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 进程那些事(一)：进程概述
+title: 进程那些事(一)：概述
 category: os
 tags: 进程 堆 栈 虚拟地址空间
 ---
