@@ -5,6 +5,7 @@
 		<title>yapianyu - Better late than never</title>
 		<link rel="stylesheet" type="text/css" href="/css/style.css" />
 		<link rel="stylesheet" type="text/css" href="/css/syntax.css" />
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
 		<script type="text/javascript">
 			var _gaq = _gaq || [];
 			_gaq.push(['_setAccount', 'UA-33482938-1']);
@@ -44,7 +45,29 @@
 				</div>
 			</div>
 		</div>
-		<a href='#' style='position:fixed;bottom:5px;right:5px;' title='Back to Top'><img src='/image/back-to-top.png'/></a>
+		<a id="backToTop" href="#" style='position:fixed;bottom:35px;overflow:hidden;'
+			title='Back to Top' onclick="window.scrollTo(0,0);return false;">
+			<img src='/image/back-to-top.png'/>
+		</a>
+		<script type="text/javascript">
+			$(document).ready(function () {
+				var bt = $('#backToTop');
+				var sw = $(document.body)[0].clientWidth;
+				var limitsw = (sw - 800) / 2 - 80;
+				if (limitsw > 0){
+				limitsw = parseInt(limitsw);
+				bt.css("right",limitsw);
+			}
+			$(window).scroll(function() {
+				var st = $(window).scrollTop();
+					if(st > 30){
+					bt.show();
+				} else{
+					bt.hide();
+				}
+			});
+		})
+		</script>
 	</body>
 </html>
 
