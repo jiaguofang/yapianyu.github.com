@@ -65,6 +65,6 @@ Fork：父子进程
 从程序到执行中的进程
 
 References:  
-[Anatomy of a Program in Memory](http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory)  
+[Anatomy of a Program in Memory](http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory)  (从这里盗了很多图= =)
 [Virtual Address Space](http://msdn.microsoft.com/en-us/library/windows/desktop/aa366912(v=vs.85\).aspx)  
 
