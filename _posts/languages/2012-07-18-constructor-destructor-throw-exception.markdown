@@ -11,11 +11,11 @@ constructors和条款11: Prevent exceptions from leaving destructors找到类似
 遂搬来使用。
 
 ###构造函数抛出异常###
-我们知道构造函数是没有返回值的，所以当构造函数执行失败时(比如参数错误，运行时错
-误……)，为了**通知调用者**，抛出异常是最好的选择。先来看段正常的代码：
+我们知道构造函数没有返回值，所以当构造函数执行失败时(比如参数错误，运行时错误
+等等)，为了**通知调用者**，抛出异常是最好的选择。先来看段正常的代码：
 
 {% highlight cpp %}
-// 版本一：正常代码，无异常
+// 版本一：构造函数无异常
 #include <iostream>
 #include <string>
 using namespace std;
@@ -52,7 +52,27 @@ int main()
     delete b;
 }
 {% endhighlight %}
-
+{% highlight text %}
+yapianyu@yapianyu-pc:~/Desktop$ g++ ctorleak.cpp -g
+yapianyu@yapianyu-pc:~/Desktop$ valgrind --leak-check=full ./a.out
+==32130== Memcheck, a memory error detector
+==32130== Copyright (C) 2002-2010, and GNU GPL'd, by Julian Seward et al.
+==32130== Using Valgrind-3.6.1-Debian and LibVEX; rerun with -h for copyright info
+==32130== Command: ./a.out
+==32130== 
+This is a string object!
+This is a pointer to string!
+Base destructor!
+==32130== 
+==32130== HEAP SUMMARY:
+==32130==     in use at exit: 0 bytes in 0 blocks
+==32130==   total heap usage: 4 allocs, 4 frees, 126 bytes allocated
+==32130== 
+==32130== All heap blocks were freed -- no leaks are possible
+==32130== 
+==32130== For counts of detected and suppressed errors, rerun with: -v
+==32130== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 4 from 4)
+{% endhighlight %}
 
 {% highlight cpp %}
 // 版本二：构造函数抛出异常
