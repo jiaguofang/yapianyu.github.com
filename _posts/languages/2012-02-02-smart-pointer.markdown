@@ -1,8 +1,8 @@
 ---
 layout: post
-title: 理解智能指针(Smart Pointer)
+title: 理解C++智能指针(Smart Pointer)
 category: languages
-tags: 智能指针 内存泄漏
+tags: C++ 智能指针 内存泄漏
 ---
 
 在堆上申请内存就像拿信用卡透支，如果隔三岔五透支(申请内存)却不还款(释放内存)，迟早
