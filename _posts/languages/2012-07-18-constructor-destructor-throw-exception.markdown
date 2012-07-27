@@ -14,284 +14,25 @@ constructors*和条款11: *Prevent exceptions from leaving destructors*找到类
 我们知道构造函数没有返回值，所以当构造函数执行失败时(比如参数错误，运行时错误
 等等)，为了**通知调用者**，抛出异常是最好的选择。
 
-假设正在执行如下代码，可以看到内存申请/释放和输出结果一切正常：
+举个例子：
 {% highlight cpp %}
 // 版本一：构造函数无异常
-#include <iostream>
-#include <string>
-using namespace std;
-
-class Base
-{
-public:
-    Base() :
-    m_sobj("This is a string object!"),
-    m_sptr(new string("This is a pointer to string!"))
-    {
-    }
-
-    ~Base()
-    {
-        delete m_sptr;
-        cout << "Base destructor!" << endl;
-    }
-
-    void Print()
-    {
-        cout << m_sobj << endl;
-        cout << *m_sptr << endl;
-    }
-private:
-    string m_sobj;
-    string* m_sptr;
-};
-
-int main()
-{
-    Base* b = new Base();
-    b->Print();
-    delete b;
-}
-{% endhighlight %}
-{% highlight text %}
-yapianyu@yapianyu-pc:~/Desktop$ g++ ctorleak.cpp -g
-yapianyu@yapianyu-pc:~/Desktop$ valgrind --leak-check=full ./a.out
-==5570== Memcheck, a memory error detector
-==5570== Copyright (C) 2002-2010, and GNU GPL'd, by Julian Seward et al.
-==5570== Using Valgrind-3.6.1-Debian and LibVEX; rerun with -h for copyright info
-==5570== Command: ./a.out
-==5570== 
-This is a string object!
-This is a pointer to string!
-Base destructor!
-==5570== 
-==5570== HEAP SUMMARY:
-==5570==     in use at exit: 0 bytes in 0 blocks
-==5570==   total heap usage: 4 allocs, 4 frees, 90 bytes allocated
-==5570== 
-==5570== All heap blocks were freed -- no leaks are possible
-==5570== 
-==5570== For counts of detected and suppressed errors, rerun with: -v
-==5570== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 17 from 6)
-{% endhighlight %}
-
-我们修改一下代码，在构造函数中抛出一个异常：
-{% highlight cpp %}
-// 版本二：构造函数抛出异常
-#include <iostream>
-#include <string>
-#include <stdexcept>
-#include <memory>
-using namespace std;
-
-class Base
-{
-public:
-    Base() :
-    m_sobj("This is a string object!"),
-    m_sptr(new string("This is a pointer to string!"))
-    {
-        throw runtime_error("Exception from Base!"); // 抛出异常
-    }
-
-    ~Base()
-    {
-        delete m_sptr;
-        cout << "Base destructor!" << endl;
-    }
-
-    void Print()
-    {
-        cout << m_sobj << endl;
-        cout << *m_sptr << endl;
-    }
-private:
-    string m_sobj;
-    string* m_sptr;
-};
-
-int main()
-{
-    try
-    {
-        Base* b = new Base();
-        b->Print();
-        delete b;
-    }
-    catch (exception& e)
-    {
-        cout << e.what() << endl;
-    }
-}
-{% endhighlight %}
-
-valgrind的执行结果如下，可以看到：  
-1. 输出结果为`Exception from Base!`。与版本一相比，Print()和~Base()中的输出并没
-   有打印出来，可见没有被调用到  
-2. 第12行发生内存泄漏即`m_sptr(new string("This is a pointer to string!"))`。因
-   为其析构函数~Base()没有被调用到
-
-按照C++标准，**尚未完全构造好的对象，其析构函数永远不会被调用**。而此时对于
-`Base* b = new Base()`，一旦异常抛出，b的值依然是null，所以即使在其catch里调用
-`delete b`也不会调用Base的析构函数。现在唯一可以做的是在抛出异常时自己捕捉，自己
-清理，清除后重新将异常抛出。
-与版本一相比，Base的Print()和~Base()并没有被调用
-{% highlight text %}
-yapianyu@yapianyu-pc:~/Desktop$ g++ ctorleak.cpp -g
-yapianyu@yapianyu-pc:~/Desktop$ valgrind --leak-check=full ./a.out
-==5392== Memcheck, a memory error detector
-==5392== Copyright (C) 2002-2010, and GNU GPL'd, by Julian Seward et al.
-==5392== Using Valgrind-3.6.1-Debian and LibVEX; rerun with -h for copyright info
-==5392== Command: ./a.out
-==5392== 
-Exception from Base!
-==5392== 
-==5392== HEAP SUMMARY:
-==5392==     in use at exit: 45 bytes in 2 blocks
-==5392==   total heap usage: 6 allocs, 4 frees, 227 bytes allocated
-==5392== 
-==5392== 45 (4 direct, 41 indirect) bytes in 1 blocks are definitely lost in loss record 2 of 2
-==5392==    at 0x402842F: operator new(unsigned int) (vg_replace_malloc.c:255)
-==5392==    by 0x8048C63: Base::Base() (ctorleak.cpp:12)
-==5392==    by 0x8048B05: main (ctorleak.cpp:37)
-==5392== 
-==5392== LEAK SUMMARY:
-==5392==    definitely lost: 4 bytes in 1 blocks
-==5392==    indirectly lost: 41 bytes in 1 blocks
-==5392==      possibly lost: 0 bytes in 0 blocks
-==5392==    still reachable: 0 bytes in 0 blocks
-==5392==         suppressed: 0 bytes in 0 blocks
-==5392== 
-==5392== For counts of detected and suppressed errors, rerun with: -v
-==5392== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 17 from 6)
-{% endhighlight %}
-{% highlight cpp %}
-// 版本三：构造函数抛出异常后立即释放heap上申请的内存
-#include <iostream>
-#include <string>
-#include <stdexcept>
-#include <memory>
-using namespace std;
-
-class Base
-{
-public:
-    Base() :
-    m_sobj("This is a string object!"),
-    m_sptr(new string("This is a pointer to string!"))
-    {
-        try
-        {
-            throw runtime_error("Exception from Base!");
-        }
-        catch (...)
-        {
-            delete m_sptr;
-            throw;
-        }
-    }
-
-    ~Base()
-    {
-        delete m_sptr;
-        cout << "Base destructor!" << endl;
-    }
-
-    void Print()
-    {
-        cout << m_sobj << endl;
-        cout << *m_sptr << endl;
-    }
-private:
-    string m_sobj;
-    string* m_sptr;
-};
-
-int main()
-{
-    try
-    {
-        Base* b = new Base();
-        b->Print();
-        delete b;
-    }
-    catch (exception& e)
-    {
-        cout << e.what() << endl;
-    }
-}
-{% endhighlight %}
-
-{% highlight cpp %}
-// 版本四：利用智能指针auto_ptr自动清理heap上申请的内存
-#include <iostream>
-#include <string>
-#include <stdexcept>
-#include <memory>
-using namespace std;
-
-class Base
-{
-public:
-    Base() :
-    m_sobj("This is a string object!"),
-    m_sptr(new string("This is a pointer to string!"))
-    {
-        throw runtime_error("Exception from Base!");
-    }
-
-    ~Base()
-    {
-        cout << "Base destructor!" << endl;
-    }
-
-    void Print()
-    {
-        cout << m_sobj << endl;
-        cout << *m_sptr << endl;
-    }
-private:
-    string m_sobj;
-    auto_ptr<string> m_sptr;
-};
-
-int main()
-{
-    try
-    {
-        Base* b = new Base();
-        b->Print();
-        delete b;
-    }
-    catch (exception& e)
-    {
-        cout << e.what() << endl;
-    }
-}
-{% endhighlight%}
-
-http://www.parashift.com/c++-faq-lite/ctors-can-throw.html
-
-http://www.parashift.com/c++-faq-lite/dtors-shouldnt-throw.html
-
-http://www.parashift.com/c++-faq-lite/selfcleaning-members.html
-
 #include <iostream>
 #include <string.h>
 using namespace std;
 
-class Son
+class Child
 {
 public:
-    Son(const char* name)
+    Child(const char* name)
     {
-        m_name = new char[strlen(name) + 1];
-        strcpy(m_name, name);
+        m_name = new char[strlen(name) + 1]; // 申请内存
+        strcpy(m_name, name); // 拷贝
     }
-    ~Son()
+    virtual ~Child()
     {
-        delete m_name;
-        cout << "Son destructed!" << endl;
+        delete[] m_name; // 释放内存
+        cout << "Child destructed!" << endl;
     }
     char* GetName()
     {
@@ -301,46 +42,45 @@ private:
     char* m_name;
 };
 
-class Daughter
+class Son : public Child
 {
 public:
-    Daughter(const char* name)
+    Son(const char* name) : Child(name) {}
+    virtual ~Son()
     {
-        m_name = new char[strlen(name) + 1];
-        strcpy(m_name, name);
+        cout << "Son destructed!" << endl;
     }
-    ~Daughter()
+};
+
+class Daughter : public Child
+{
+public:
+    Daughter(const char* name) : Child(name) {}
+    virtual ~Daughter()
     {
-        delete m_name;
         cout << "Daughter destructed!" << endl;
     }
-    char* GetName()
-    {
-        return m_name;
-    }
-private:
-    char* m_name;
 };
 
 class Parent
 {
 public:
     Parent(const char* son, const char* daughter) :
-    m_son(son),
-    m_daughter(new Daughter(daughter))
+    m_son(son), // 初始化儿子
+    m_daughter(new Daughter(daughter)) // 初始化女儿
     {
     }
 
     ~Parent()
     {
-        delete m_daughter;
+        delete m_daughter; // 释放内存
         cout << "Parent destructed!" << endl;
     }
 
     void PrintChildren()
     {
-        cout << "My son is " << m_son.GetName() << endl;
-        cout << "My daughter is " << m_daughter->GetName() << endl;
+        cout << "My son is " << m_son.GetName() << endl; // 打印儿子
+        cout << "My daughter is " << m_daughter->GetName() << endl; // 打印女儿
     }
 private:
     Son m_son;
@@ -350,7 +90,308 @@ private:
 int main()
 {
     Parent* p = new Parent("Li Lei", "Han Meimei");
-    p->PrintChildren();
-    delete p;
+    p->PrintChildren(); // 打印
+    delete p; // 释放内存
 }
+{% endhighlight %}
 
+打印正常，且无内存泄漏:
+{% highlight text %}
+yapianyu@yapianyu-pc:~/Desktop$ g++ ctorleak.cpp -g
+yapianyu@yapianyu-pc:~/Desktop$ valgrind --leak-check=full ./a.out
+==1711== Memcheck, a memory error detector
+==1711== Copyright (C) 2002-2010, and GNU GPL'd, by Julian Seward et al.
+==1711== Using Valgrind-3.6.1-Debian and LibVEX; rerun with -h for copyright info
+==1711== Command: ./a.out
+==1711== 
+My son is Li Lei
+My daughter is Han Meimei
+Daughter destructed!
+Child destructed!
+Parent destructed!
+Son destructed!
+Child destructed!
+==1711== 
+==1711== HEAP SUMMARY:
+==1711==     in use at exit: 0 bytes in 0 blocks
+==1711==   total heap usage: 4 allocs, 4 frees, 58 bytes allocated
+==1711== 
+==1711== All heap blocks were freed -- no leaks are possible
+==1711== 
+==1711== For counts of detected and suppressed errors, rerun with: -v
+==1711== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 4 from 4)
+{% endhighlight %}
+
+现在修改一下代码，在构造函数中抛出异常：
+{% highlight cpp %}
+// 版本二：构造函数抛出异常
+... ...
+class Parent
+{
+public:
+    Parent(const char* son, const char* daughter) :
+    m_son(son), // 初始化儿子
+    m_daughter(new Daughter(daughter)) // 初始化女儿
+    {
+        throw runtime_error("Exception from Parent!"); // <=== 抛出异常
+    }
+
+    ~Parent()
+    {
+        delete m_daughter; // 释放内存
+        cout << "Parent destructed!" << endl;
+    }
+
+    void PrintChildren()
+    {
+        cout << "My son is " << m_son.GetName() << endl; // 打印儿子
+        cout << "My daughter is " << m_daughter->GetName() << endl; // 打印女儿
+    }
+private:
+    Son m_son;
+    Daughter* m_daughter;
+};
+
+int main()
+{
+    try
+    {
+        Parent* p = new Parent("Li Lei", "Han Meimei");
+        p->PrintChildren(); // 打印
+        delete p; // 释放内存
+    }
+    catch (exception& e)
+    {
+        cout << e.what() << endl;
+    }
+}
+{% endhighlight %}
+
+执行结果如下：
+{% highlight text %}
+yapianyu@yapianyu-pc:~/Desktop$ g++ ctorleak.cpp -g
+yapianyu@yapianyu-pc:~/Desktop$ valgrind --leak-check=full ./a.out
+==2027== Memcheck, a memory error detector
+==2027== Copyright (C) 2002-2010, and GNU GPL'd, by Julian Seward et al.
+==2027== Using Valgrind-3.6.1-Debian and LibVEX; rerun with -h for copyright info
+==2027== Command: ./a.out
+==2027== 
+Son destructed!
+Child destructed!
+Exception from Parent!
+==2027== 
+==2027== HEAP SUMMARY:
+==2027==     in use at exit: 27 bytes in 2 blocks
+==2027==   total heap usage: 6 allocs, 4 frees, 249 bytes allocated
+==2027== 
+==2027== 27 (16 direct, 11 indirect) bytes in 1 blocks are definitely lost in loss record 2 of 2
+==2027==    at 0x4C28B35: operator new(unsigned long) (vg_replace_malloc.c:261)
+==2027==    by 0x40138D: Parent::Parent(char const*, char const*) (ctorleak.cpp:53)
+==2027==    by 0x400FAF: main (ctorleak.cpp:78)
+==2027== 
+==2027== LEAK SUMMARY:
+==2027==    definitely lost: 16 bytes in 1 blocks
+==2027==    indirectly lost: 11 bytes in 1 blocks
+==2027==      possibly lost: 0 bytes in 0 blocks
+==2027==    still reachable: 0 bytes in 0 blocks
+==2027==         suppressed: 0 bytes in 0 blocks
+==2027== 
+==2027== For counts of detected and suppressed errors, rerun with: -v
+==2027== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 4 from 4)
+{% endhighlight %}
+
+有几点可以发现：
+
+1\. 打印结果来自`m_son`的析构和`main()`函数中异常的捕捉。  
+`m_son`被析构依赖于异常处理的栈回退([Stack
+Unwind](http://en.wikibooks.org/wiki/C%2B%2B_Programming/Exception_Handling#Stack_unwinding))
+机制，主要用来确保异常被捕捉之前所有本地变量(local or stack variables)的析构函数
+都会被调用到。
+
+2\. 第53行`m_daughter(new Daughter(daughter))`发生内存泄漏，说明`~Parent()`没有被
+调用，从而导致`m_daughter`没有被析构。  
+按照C++标准，**尚未完全构造好的对象，其析构函数永远不会被调用**。因此由于`Parent`
+的构造函数抛出异常，其析构函数永远不会被调用。进一步发现对于`Parent* p = new Parent("Li Lei", "Han Meimei")`，
+一旦异常抛出，p的值依然是null，即使在catch里调用`delete p`也不会调用`Parent`的析构函数。
+
+因此，为了将`m_daughter`析构掉，唯一可以做的就是在抛出异常时自己捕捉，自己清理，
+之后将异常重新抛出。
+{% highlight cpp %}
+// 版本三：构造函数抛出异常后自己清理heap上申请的内存
+... ...
+class Parent
+{
+public:
+    Parent(const char* son, const char* daughter) :
+    m_son(son), // 初始化儿子
+    m_daughter(new Daughter(daughter)) // 初始化女儿
+    {
+        try
+        {
+            throw runtime_error("Exception from Parent!"); // <=== 抛出异常
+        }
+        catch (...)
+        {
+            delete m_daughter; // <=== 自己释放内存
+            throw; // <=== 重新抛出
+        }
+    }
+
+    ~Parent()
+    {
+        delete m_daughter; // 释放内存
+        cout << "Parent destructed!" << endl;
+    }
+
+    void PrintChildren()
+    {
+        cout << "My son is " << m_son.GetName() << endl; // 打印儿子
+        cout << "My daughter is " << m_daughter->GetName() << endl; // 打印女儿
+    }
+private:
+    Son m_son;
+    Daughter* m_daughter;
+};
+
+int main()
+{
+    try
+    {
+        Parent* p = new Parent("Li Lei", "Han Meimei");
+        p->PrintChildren(); // 打印
+        delete p; // 释放内存
+    }
+    catch (exception& e)
+    {
+        cout << e.what() << endl;
+    }
+}
+{% endhighlight %}
+
+执行结果如下，可以看到`m_daughter`已被析构，且无内存泄漏：
+{% highlight text %}
+yapianyu@yapianyu-pc:~/Desktop$ g++ ctorleak.cpp -g
+yapianyu@yapianyu-pc:~/Desktop$ valgrind --leak-check=full ./a.out
+==2432== Memcheck, a memory error detector
+==2432== Copyright (C) 2002-2010, and GNU GPL'd, by Julian Seward et al.
+==2432== Using Valgrind-3.6.1-Debian and LibVEX; rerun with -h for copyright info
+==2432== Command: ./a.out
+==2432== 
+Daughter destructed!
+Child destructed!
+Son destructed!
+Child destructed!
+Exception from Parent!
+==2432== 
+==2432== HEAP SUMMARY:
+==2432==     in use at exit: 0 bytes in 0 blocks
+==2432==   total heap usage: 6 allocs, 6 frees, 249 bytes allocated
+==2432== 
+==2432== All heap blocks were freed -- no leaks are possible
+==2432== 
+==2432== For counts of detected and suppressed errors, rerun with: -v
+==2432== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 4 from 4)
+{% endhighlight %}
+
+最后，我们再来做一点改进，将自动销毁的任务交给智能指针`auto_ptr`来管理：
+{% highlight cpp %}
+// 版本四：利用智能指针auto_ptr自动清理heap上申请的内存
+#include <iostream>
+#include <string.h>
+#include <stdexcept>
+#include <memory>
+using namespace std;
+
+class Child
+{
+public:
+    Child(const char* name)
+    {
+        m_name = new char[strlen(name) + 1]; // 申请内存
+        strcpy(m_name, name); // 拷贝
+    }
+    virtual ~Child()
+    {
+        delete[] m_name; // 释放内存
+        cout << "Child destructed!" << endl;
+    }
+    char* GetName()
+    {
+        return m_name;
+    }
+private:
+    char* m_name;
+};
+
+class Son : public Child
+{
+public:
+    Son(const char* name) : Child(name) {}
+    virtual ~Son()
+    {
+        cout << "Son destructed!" << endl;
+    }
+};
+
+class Daughter : public Child
+{
+public:
+    Daughter(const char* name) : Child(name) {}
+    virtual ~Daughter()
+    {
+        cout << "Daughter destructed!" << endl;
+    }
+};
+
+class Parent
+{
+public:
+    Parent(const char* son, const char* daughter) :
+    m_son(son), // 初始化儿子
+    m_daughter(new Daughter(daughter)) // 初始化女儿
+    {
+        throw runtime_error("Exception from Parent!"); // <=== 抛出异常
+    }
+
+    ~Parent()
+    {
+        cout << "Parent destructed!" << endl;
+    }
+
+    void PrintChildren()
+    {
+        cout << "My son is " << m_son.GetName() << endl; // 打印儿子
+        cout << "My daughter is " << m_daughter->GetName() << endl; // 打印女儿
+    }
+private:
+    Son m_son;
+    auto_ptr<Daughter> m_daughter; // <=== 交给智能指针管理
+};
+
+int main()
+{
+    try
+    {
+        Parent* p = new Parent("Li Lei", "Han Meimei");
+        p->PrintChildren(); // 打印
+        delete p; // 释放内存
+    }
+    catch (exception& e)
+    {
+        cout << e.what() << endl;
+    }
+}
+{% endhighlight%}
+
+###结论###
+当构造函数执行失败时，勇敢地抛出异常。此时：  
+1. 抛出异常的那个类的析构函数永远不会被调用。  
+2. 所有已构造完成的成员对象的析构函数会被自动调用。  
+3. 当前被构造的对象(如`Parent`)在抛出异常后，所占用的内存会被自动释放掉。  
+4. 良好的做法是，当构造函数中抛出异常，立即捕捉掉，同时释放内存，最后重新抛出。
+   当然释放内存的操作可以交给智能指针管理。
+
+Reference:  
+[C++ FAQ 17.8 How can I handle a constructor that fails?](http://www.parashift.com/c++-faq-lite/ctors-can-throw.html)  
+[C++ FAQ 17.10 How should I handle resources if my constructors may throw exceptions?](http://www.parashift.com/c++-faq-lite/selfcleaning-members.html)  
+[Will the below code cause memory leak in c++](http://stackoverflow.com/questions/147572/will-the-below-code-cause-memory-leak-in-c)  
