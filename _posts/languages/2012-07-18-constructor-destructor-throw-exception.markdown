@@ -391,7 +391,7 @@ int main()
 4. 良好的做法是，当构造函数中抛出异常，立即捕捉掉，同时释放内存，最后重新抛出。
    当然释放内存的操作可以交给智能指针管理。
 
-Reference:  
+References:  
 [C++ FAQ 17.8 How can I handle a constructor that fails?](http://www.parashift.com/c++-faq-lite/ctors-can-throw.html)  
 [C++ FAQ 17.10 How should I handle resources if my constructors may throw exceptions?](http://www.parashift.com/c++-faq-lite/selfcleaning-members.html)  
 [Will the below code cause memory leak in c++](http://stackoverflow.com/questions/147572/will-the-below-code-cause-memory-leak-in-c)  
