@@ -494,4 +494,4 @@ References:
 [C++ FAQ 17.8 How can I handle a constructor that fails?](http://www.parashift.com/c++-faq-lite/ctors-can-throw.html)  
 [C++ FAQ 17.10 How should I handle resources if my constructors may throw exceptions?](http://www.parashift.com/c++-faq-lite/selfcleaning-members.html)  
 [Will the below code cause memory leak in c++](http://stackoverflow.com/questions/147572/will-the-below-code-cause-memory-leak-in-c)  
-[How can I handle a destructor that fails?](http://www.parashift.com/c++-faq-lite/dtors-shouldnt-throw.html)
+[C++ FAQ 17.9 How can I handle a destructor that fails?](http://www.parashift.com/c++-faq-lite/dtors-shouldnt-throw.html)
