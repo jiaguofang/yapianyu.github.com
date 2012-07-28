@@ -6,9 +6,9 @@ tags: C++ 构造函数 析构函数 异常 栈回退 智能指针
 ---
 
 之前似乎从未考虑过能否在构造函数和析构函数中抛出异常？会有什么后果？所以花了点时
-间研究了一下，找资料时恰好在《Effective C++》条款10: *Prevent resource leaks in
-constructors*和条款11: *Prevent exceptions from leaving destructors*找到类似章节，
-遂搬来使用。
+间研究了一下，找资料时恰好在《More Effective C++》条款10: *Prevent resource leaks
+inconstructors*和条款11: *Prevent exceptions from leaving destructors*找到类似章
+节，遂搬来使用。
 
 ###构造函数抛出异常###
 我们知道构造函数没有返回值，所以当构造函数执行失败时(比如参数错误，运行时错误
@@ -383,15 +383,115 @@ int main()
 }
 {% endhighlight%}
 
+###析构函数抛出异常###
+《More Effective C++》条款11指出，在两种情况下析构函数会被调用：  
+1. 在正常情况下被销毁，也就是当它离开了它的生存空间(Scope)或是被明确地删除
+   (delete)；  
+2. 被exception处理机制——也就是被exception传播过程中的栈回退(Stack Unwind)机制——
+   销毁。
+
+在第2种情况下，如果栈回退过程中某个析构函数也抛出异常，C++会调用`terminate()`函
+数，直接将程序终止掉(太狠了)。
+
+举个例子：
+{% highlight cpp %}
+nclude <iostream>
+#include <string.h>
+#include <stdexcept>
+using namespace std;
+
+class Baby
+{
+public:
+    Baby(const char* name)
+    {
+        m_name = new char[strlen(name) + 1]; // 申请内存
+        strcpy(m_name, name); // 拷贝
+    }
+
+    ~Baby()
+    {
+        throw runtime_error("Exception from ~Baby()!"); // <=== 析构函数抛出异常
+        delete[] m_name; // 由于抛出异常，这行将不会被执行
+        cout << "Baby destructed!" << endl;
+    }
+
+    void Drink()
+    {
+        cout << "I'm drinking!" << endl;
+    }
+
+    void Eat()
+    {
+        cout << "I'm eating!" << endl;
+    }
+
+    void Sleep()
+    {
+        throw runtime_error("Exception from Sleep()!"); // <=== 抛出异常
+        cout << "I'm sleeping!" << endl;
+    }
+private:
+    char* m_name;
+};
+
+int main()
+{
+    try
+    {
+        Baby b("Little Tomy");
+        b.Drink();
+        b.Eat();
+        b.Sleep();
+    }
+    catch (exception& e)
+    {
+        cout << e.what() << endl;
+    }
+}
+{% endhighlight %}
+
+执行结果如下：
+{% highlight text %}
+yapianyu@yapianyu-pc:~/Desktop$ g++ ctorleak.cpp -g
+yapianyu@yapianyu-pc:~/Desktop$ valgrind --leak-check=full ./a.out
+... ...
+I'm drinking!
+I'm eating!
+terminate called after throwing an instance of 'std::runtime_error'
+  what():  Exception from ~Baby()!
+... ...
+==5256== HEAP SUMMARY:
+==5256==     in use at exit: 285 bytes in 5 blocks
+==5256==   total heap usage: 6 allocs, 1 frees, 317 bytes allocated
+... ...
+==5256== LEAK SUMMARY:
+==5256==    definitely lost: 0 bytes in 0 blocks
+==5256==    indirectly lost: 0 bytes in 0 blocks
+==5256==      possibly lost: 280 bytes in 4 blocks
+==5256==    still reachable: 5 bytes in 1 blocks
+==5256==         suppressed: 0 bytes in 0 blocks
+... ...
+Aborted
+{% endhighlight %}
+
+可以看到程序不仅被终止，而且还有内存泄漏(析构函数`~Baby()`没有执行完整)。**因此
+强烈建议不要在析构函数中抛出异常，否则后果自负！**。
+
 ###结论###
 当构造函数执行失败时，勇敢地抛出异常。此时：  
-1. 抛出异常的那个类的析构函数永远不会被调用。  
-2. 所有已构造完成的成员对象的析构函数会被自动调用。  
-3. 当前被构造的对象(如`Parent`)在抛出异常后，所占用的内存会被自动释放掉。  
+1. 抛出异常的那个类的析构函数永远不会被调用；  
+2. 所有已构造完成的成员对象的析构函数会被自动调用；  
+3. 当前被构造的对象(如`Parent`)在抛出异常后，所占用的内存会被自动释放掉；  
 4. 良好的做法是，当构造函数中抛出异常，立即捕捉掉，同时释放内存，最后重新抛出。
    当然释放内存的操作可以交给智能指针管理。
+
+对于析构函数，我们应该全力阻止其抛出异常，因为：  
+1. 这样可以避免`terminate()`函数在exception传播过程的栈回退机制中被调用；  
+2. 可以确保析构函数完成其应该完成的所有任务，不会中途退出。
 
 References:  
 [C++ FAQ 17.8 How can I handle a constructor that fails?](http://www.parashift.com/c++-faq-lite/ctors-can-throw.html)  
 [C++ FAQ 17.10 How should I handle resources if my constructors may throw exceptions?](http://www.parashift.com/c++-faq-lite/selfcleaning-members.html)  
 [Will the below code cause memory leak in c++](http://stackoverflow.com/questions/147572/will-the-below-code-cause-memory-leak-in-c)  
+[How can I handle a destructor that fails?](http://www.parashift.com/c++-faq-lite/dtors-shouldnt-throw.html)
