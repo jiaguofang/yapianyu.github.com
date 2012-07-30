@@ -57,15 +57,26 @@ static int cntWorkerBees = 10; // 已初始化的static变量
 {% endhighlight %}
 ![](/image/mapping-binary-image.png)
 
+###进程调度###
+进程在执行时会改变状态。每个进程可能处于下列状态之一：
 
-虚拟地址空间
-状态（挂起、解挂）
-PCB、上下文切换、调度、资源（CPU时间、内存、文件、I/O设备）
-进程间通信
-Fork：父子进程
-从程序到执行中的进程
+1. **新的**：进程正在被创建。
+2. **运行**：指令正在被执行。
+3. **等待**：进程等待一定事件的出现(如I/O完成或收到某个信号)。
+4. **就绪**：进程等待被分配给某个处理器。
+5. **终止**：进程已完成执行。
+
+![](/image/process-state.gif)
+
+存放进程管理和控制信息的数据结构称为[进程控制块](http://en.wikipedia.org/wiki/Process_control_block)
+(Process Control Block, PCB)。PCB包含的信息有：进程状态、程序计数器、CPU寄存器、
+CPU调度信息、内存管理信息、记账信息、I/O状态信息等等。
+
+当CPU切换到另一个进程需要保存原来进程的状态并装入新进程的保存状态。这一任务称为
+[上下文切换](http://en.wikipedia.org/wiki/Context_switch)(Context Switch)。当发
+生上下文切换时，内核会将旧进程的关联状态保存在其PCB中，然后装入经调度要执行的新
+进程的已保存的关联状态。
 
 References:  
 [Anatomy of a Program in Memory](http://duartes.org/gustavo/blog/post/anatomy-of-a-program-in-memory)(从这里盗了很多图)  
-[Virtual Address Space](http://msdn.microsoft.com/en-us/library/windows/desktop/aa366912(v=vs.85\).aspx)  
-
+[Virtual Address Space](http://msdn.microsoft.com/en-us/library/windows/desktop/aa366912(v=vs.85\).aspx)
