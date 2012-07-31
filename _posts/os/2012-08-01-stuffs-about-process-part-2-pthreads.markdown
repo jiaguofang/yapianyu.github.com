@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 进程那些事(二)：POSIX threads(pthreads)
+title: 进程那些事(二)：POSIX threads(Pthreads)
 category: os
 tags: POSIX thread
 ---
