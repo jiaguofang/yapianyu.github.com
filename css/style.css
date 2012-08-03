@@ -100,10 +100,12 @@ div#wrapper {
 }
 
 div#content img, div#content object {
-	-moz-border-radius:5px 5px 5px 5px;
+	/*-moz-border-radius:5px 5px 5px 5px;
 	-webkit-border-radius:5px;
-	border-radius:5px;
-	-moz-box-shadow:0 1px 0 #FFFFFF;
+	border-radius:5px;*/
+	-moz-box-shadow: 3px 3px 6px #bbb;
+    -webkit-box-shadow: 3px 3px 6px #bbb;
+    box-shadow: 3px 3px 6px #bbb;
 	/*border:5px solid #222222;*/
 	/*width:680px;*/
 }
