@@ -1,0 +1,7 @@
+---
+layout: post
+title: do {...} while (0);
+category: languages
+tags: C C++ do while
+---
+
