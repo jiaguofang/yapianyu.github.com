@@ -7,15 +7,13 @@ tags: ubuntu goagent gfw
 
 在[Xan Peng](http://xanpeng.github.com)的强烈推荐下，终于用上了goagent，在追求真理的道路上又向前迈出了一步。
 
-利用goagent翻墙需要：
-
+###准备工作###
 1\. 在GAE上架设服务器  
 2\. 在用户电脑上的运行客户端  
 3\. 安装代理切换工具，如SwitchSharp  
 4\. 配置代理切换规则，即规定哪些URL使用goagent代理
 
-下面是step by step：
-
+###Step by step###
 1\. 在[Google App Engine](https://appengine.google.com/)上Create Application，并记住"app id"  
 2\. 下载并解压[goagent稳定版](http://code.google.com/p/goagent/)和[GAE SDK For Python](https://developers.google.com/appengine/downloads)  
 3\. 修改goagent/local/proxy.ini中\[gae\]段落下的appid字段为"app id"  
