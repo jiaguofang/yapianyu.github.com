@@ -5,9 +5,9 @@ category: os
 tags: POSIX thread
 ---
 
-[POSIX Threads](http://en.wikipedia.org/wiki/POSIX_Threads)(或称Pthreads)是一套
-针对线程的POSIX标准，该标准定义了一系列创建和操作线程的API。在很多符合POSIX标准
-的Unix系(\*nix)OS上都有实现，比如FreeBSD，NetBSD，OpenBSD，GNU/Linux，Mac OS X和Solaris。
+[POSIX Threads](http://en.wikipedia.org/wiki/POSIX_Threads)(Pthreads)是一套针对
+线程的POSIX标准，该标准定义了一系列创建和操作线程的API。在很多符合POSIX标准的Unix
+系OS上都有实现，比如FreeBSD，NetBSD，OpenBSD，GNU/Linux，Mac OS X和Solaris。
 
 共享进程地址空间就像一把双刃剑，好处是减少线程创建和切换的代价，并且使得线程间通
 信更加方便。坏处也很明显，就是共享数据的同步问题，频繁的同步将带来性能上的损失，
