@@ -1,13 +1,58 @@
 ---
 layout: post
-title: POSIX Threads(Pthreads)
+title: POSIX Threads (Pthreads)
 category: os
 tags: POSIX thread
 ---
 
 [POSIX Threads](http://en.wikipedia.org/wiki/POSIX_Threads)(Pthreads)是一套针对
 线程的POSIX标准，该标准定义了一系列创建和操作线程的API。在很多符合POSIX标准的Unix
-系OS上都有实现，比如FreeBSD，NetBSD，OpenBSD，GNU/Linux，Mac OS X和Solaris。
+系OS上都有实现，如FreeBSD，NetBSD，OpenBSD，GNU/Linux，Mac OS X和Solaris。
+
+Pthreads API可以被(非正式地)分为四组：
+
+1. **Thread management**：直接操作线程的API，如create，detach，join等。也包括设
+   置(set)和查询(query)线程属性(如joinable，scheduling等)的函数。以`pthread_`和
+   `pthread_attr_`开头；
+2. **Mutexes**：Mutual exclusion的简称，用于处理线程同步问题。互斥量函数提供了对
+   互斥量的create，destroy，lock和unlock操作，同时也包括设置(set)和修改(modify)
+   与互斥量相关的属性。以`pthread_mutex_`和`pthread_mutexattr_`开头；
+3. **Condition variables**：用来通知共享数据的状态信息。包括对条件变量的create，
+   destroy，wait和signal操作，以及设置(set)和查询(query)条件变量属性。以
+   `pthread_cond_`和`pthread_condattr_`开头；
+4. **Synchronization**：操作读写锁和barrier。以`pthread_rwlock_`和
+   `pthread_barrier_`开头。
+
+###Thread management###
+####线程的创建和终止####
+{% highlight cpp %}
+/**
+ * 创建一个线程
+ *
+ * @param thread 线程ID
+ * @param attr 属性对象，用于设置线程属性，默认值为NULL
+ * @param start_routine 指向线程入口的函数指针，参数和返回值都为void *
+ * @param arg 传递给start_routine()的参数
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void*), void *arg);
+void pthread_exit(void *value_ptr);
+int pthread_cancel(pthread_t thread);
+int pthread_attr_init(pthread_attr_t *attr);
+int pthread_attr_destroy(pthread_attr_t *attr);
+{% endhighlight %}
+
+main()函数所在线程被称为“**主线程**”，因此即使没有调用`pthread_create()`，当前进
+程也包含一个线程。
+
+入口函数返回值
+main返回值
+线程属性
+
+###Mutexes###
+###Condition variables###
+###Synchronization###
+
 
 共享进程地址空间就像一把双刃剑，好处是减少线程创建和切换的代价，并且使得线程间通
 信更加方便。坏处也很明显，就是共享数据的同步问题，频繁的同步将带来性能上的损失，
@@ -80,4 +125,6 @@ pthread_cond_broadcast
 
 
 
+https://computing.llnl.gov/tutorials/pthreads/
 http://www.ibm.com/developerworks/linux/library/l-posix1/index.html
+
