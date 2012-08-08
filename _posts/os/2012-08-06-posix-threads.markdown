@@ -31,24 +31,76 @@ Pthreads API可以被(非正式地)分为四组：
  *
  * @param thread 线程ID
  * @param attr 属性对象，用于设置线程属性，默认值为NULL
- * @param start_routine 指向线程入口的函数指针，参数和返回值都为void *
+ * @param start_routine 指向线程函数的指针，参数和返回值都为void *
  * @param arg 传递给start_routine()的参数
  * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
  */
 int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void*), void *arg);
+
+/**
+ * 终止当前线程
+ *
+ * @param value_ptr 线程的退出状态，可以调用pthread_join获取该状态
+ */
 void pthread_exit(void *value_ptr);
+
+/**
+ * 创建一个线程
+ *
+ * @param thread 线程ID
+ * @param attr 属性对象，用于设置线程属性，默认值为NULL
+ * @param start_routine 指向线程函数的指针，参数和返回值都为void *
+ * @param arg 传递给start_routine()的参数
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
 int pthread_cancel(pthread_t thread);
+
+/**
+ * 
+ *
+ * @param thread 线程ID
+ * @param attr 属性对象，用于设置线程属性，默认值为NULL
+ * @param start_routine 指向线程函数的指针，参数和返回值都为void *
+ * @param arg 传递给start_routine()的参数
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
 int pthread_attr_init(pthread_attr_t *attr);
+
+/**
+ * 创建一个线程
+ *
+ * @param thread 线程ID
+ * @param attr 属性对象，用于设置线程属性，默认值为NULL
+ * @param start_routine 指向线程函数的指针，参数和返回值都为void *
+ * @param arg 传递给start_routine()的参数
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
 int pthread_attr_destroy(pthread_attr_t *attr);
 {% endhighlight %}
 
 main()函数所在线程被称为“**主线程**”，因此即使没有调用`pthread_create()`，当前进
 程也包含一个线程。
 
+一般来说，终止当前线程有以下几种方式：
+
+1. 线程函数执行完成，调用`return`结束；
+2. 线程调用`pthread_exit()`终止自己；
+3. 被另一个线程调用`pthread_cancel()`；
+4. 进程调用`exec()`或`exit()`；
+5. `main()`先于当前线程结束，并且没有调用`pthread_exit()`。
+
+当线程函数以`return`方式结束时，相当于隐式地(implicit)调用了`pthread_exit()`，两
+者效果一样。此时线程函数的返回值就是线程的退出状态(exit status)，可以调用
+`pthread_join`获取该状态。值得注意的是，**`main()`函数调用`return`相当于调用`exit()`，
+整个进程将会被终止**。为了防止这种情况发生，可以在`main()`结束时调用
+`pthread_exit()`，这样主线程会被阻塞并等待所有其它线程结束。
+
+<pthread_exit和pthread_cancel之间的关系>
+
 入口函数返回值
 main返回值
 线程属性
-
+pthread_exit参数是join
 ###Mutexes###
 ###Condition variables###
 ###Synchronization###
