@@ -213,22 +213,27 @@ Fibonacci(12) is 144.
  * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
  */
 int pthread_join(pthread_t thread, void **value_ptr);
+
 /**
- * 用默认值初始化线程属性对象
+ * 分离线程，当目标线程结束后，其资源将被立刻回收
  *
- * @param attr 线程属性对象
+ * @param thread 目标线程ID
  * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
  */
 int pthread_detach(pthread_t thread);
 {% endhighlight %}
 
-如果目标线程正在运行，调用`pthread_join()`会阻塞当前线程，直到目标线程终止；如果
-目标线程已经终止(未被detach)，由于其状态为“终止态”，因此当前线程会立刻返回，不被
-阻塞。目标线程的返回状态(通过`pthread_exit()`指定)可以通过`pthread_join()`的第二
-个参数获取。多个线程同时等待(join)同一个线程的行为是不可预知的，必须禁止这种做法。
+只有被创建为joinable的线程才能被其它线程join。如果目标线程正在运行，调用`pthread_join()`
+会阻塞当前线程，直到目标线程终止；如果目标线程已经终止(未被detach，状态为终止态)
+，当前线程会立刻返回，不被阻塞。目标线程的返回状态(通过`pthread_exit()`指定)可以
+通过`pthread_join()`的第二个参数获取。多个线程同时等待(join)同一个线程的行为是不
+可预知的，必须禁止这种做法。
 
-线程运行结束后，其资源不会被系统回收，必须调用`pthread_join()`或
-`pthread_detach()`通知系统将其回收。《Programming With POSIX Threads》这样写道：
+如果使用`PTHREAD_CREATE_DETACH`属性创建线程，或者调用`pthread_detach()`分离线程，
+则当线程结束时，其资源将被立刻回收。如果终止线程没有被分离，则它将一直处于终止态
+直到被分离(通过`pthread_detach()`)或者被连接(通过`pthread_join`)。
+
+> From \<Programming With POSIX Threads\>:
 
 > 分离一个正在运行的线程不会对线程带来任何影响，仅仅是通知系统当该线程结束时，其
 > 所属资源可以被回收。
