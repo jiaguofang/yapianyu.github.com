@@ -36,7 +36,7 @@ tags: 进程 堆 栈 虚拟地址空间
 1\. stack  
 在heap之上，唯一由高地址向低地址增长的段。存放函数局部变量、临时变量、函数参数、
 返回地址、寄存器值等(文字常量和静态变量除外)。**每个线程都有各自独立的stack**，
-[其大小可以在线程创建时设置，Linux下默认为2MB](http://www.kernel.org/doc/man-pages/online/pages/man3/pthread_create.3.html)。
+[其大小可以在线程创建时设置，Linux/x86-32平台上默认为2MB](http://www.kernel.org/doc/man-pages/online/pages/man3/pthread_create.3.html)。
 每次调用函数时，会往stack中压入一个**栈帧**(Stack Frame)。由于stack上所有申请和销
 毁操作都由编译器完成，没有复杂操作，因此效率很高。  
 2. heap  

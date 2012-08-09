@@ -9,7 +9,7 @@ tags: POSIX thread
 线程的POSIX标准，该标准定义了一系列创建和操作线程的API。在很多符合POSIX标准的Unix
 系OS上都有实现，如FreeBSD，NetBSD，OpenBSD，GNU/Linux，Mac OS X和Solaris。
 
-Pthreads API可以被(非正式地)分为四组：
+Pthreads API可以(非正式地)分为四组：
 
 1. **Thread management**：直接操作线程的API，如create，detach，join等。也包括设
    置(set)和查询(query)线程属性(如joinable，scheduling等)的函数。以`pthread_`和
@@ -24,7 +24,7 @@ Pthreads API可以被(非正式地)分为四组：
    `pthread_barrier_`开头。
 
 ###Thread management###
-####线程的创建和终止####
+####线程的创建(create)和终止(terminate)####
 {% highlight cpp %}
 /**
  * 创建一个线程
@@ -56,51 +56,191 @@ void pthread_exit(void *value_ptr);
 int pthread_cancel(pthread_t thread);
 
 /**
- * 
+ * 用默认值初始化线程属性对象
  *
- * @param thread 线程ID
- * @param attr 属性对象，用于设置线程属性，默认值为NULL
- * @param start_routine 指向线程函数的指针，参数和返回值都为void *
- * @param arg 传递给start_routine()的参数
+ * @param attr 线程属性对象
  * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
  */
 int pthread_attr_init(pthread_attr_t *attr);
 
 /**
- * 创建一个线程
+ * 销毁线程属性对象
  *
- * @param thread 线程ID
- * @param attr 属性对象，用于设置线程属性，默认值为NULL
- * @param start_routine 指向线程函数的指针，参数和返回值都为void *
- * @param arg 传递给start_routine()的参数
+ * @param attr 线程属性对象
  * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
  */
 int pthread_attr_destroy(pthread_attr_t *attr);
 {% endhighlight %}
 
-main()函数所在线程被称为“**主线程**”，因此即使没有调用`pthread_create()`，当前进
-程也包含一个线程。
+`main()`函数所在线程被称为“**主线程**”，因此即使没有调用`pthread_create()`，当前
+进程也包含一个线程。主线程和进程中其它线程没有任何层次关系，执行顺序完全依赖于系
+统的调度算法。如果没做特殊处理，主线程结束时其它线程也将自动终止。
 
-一般来说，终止当前线程有以下几种方式：
+有关线程创建最重要的是，在当前线程从函数`pthread_create()`中返回以及新线程被调度
+执行之间不存在同步关系。即，新线程可能在当前线程从`pthread_create()`返回之前就运
+行了，甚至可能已经运行完成。
+
+一般来说，终止线程有以下几种方式：
 
 1. 线程函数执行完成，调用`return`结束；
 2. 线程调用`pthread_exit()`终止自己；
 3. 被另一个线程调用`pthread_cancel()`；
 4. 进程调用`exec()`或`exit()`；
-5. `main()`先于当前线程结束，并且没有调用`pthread_exit()`。
+5. `main()`函数先于当前线程结束，并且没有调用`pthread_exit()`。
 
 当线程函数以`return`方式结束时，相当于隐式地(implicit)调用了`pthread_exit()`，两
 者效果一样。此时线程函数的返回值就是线程的退出状态(exit status)，可以调用
 `pthread_join`获取该状态。值得注意的是，**`main()`函数调用`return`相当于调用`exit()`，
-整个进程将会被终止**。为了防止这种情况发生，可以在`main()`结束时调用
+整个进程将会被终止**。为了防止这种情况发生，可以在`main()`函数结束时调用
 `pthread_exit()`，这样主线程会被阻塞并等待所有其它线程结束。
 
 <pthread_exit和pthread_cancel之间的关系>
 
-入口函数返回值
-main返回值
-线程属性
-pthread_exit参数是join
+线程创建时会被设置以默认的属性(attribute)，其中一部分属性可以通过修改属性对象
+(attribute object)来改变，包括：
+
+1. Detached or joinable state
+{% highlight cpp %}
+int pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate);
+int pthread_attr_getdetachstate(const pthread_attr_t *attr, int *detachstate);
+{% endhighlight %}
+2. Scheduling inheritance
+{% highlight cpp %}
+int pthread_attr_setinheritsched(pthread_attr_t *attr, int inheritsched);
+int pthread_attr_getinheritsched(const pthread_attr_t *attr, int *inheritsched);
+{% endhighlight %}
+3. Scheduling policy
+{% highlight cpp %}
+int pthread_attr_setschedpolicy(pthread_attr_t *attr, int policy);
+int pthread_attr_getschedpolicy(const pthread_attr_t *attr, int *policy);
+{% endhighlight %}
+4. Scheduling parameters
+{% highlight cpp %}
+int pthread_attr_setschedparam(pthread_attr_t *attr, const struct sched_param *param);
+int pthread_attr_getschedparam(const pthread_attr_t *attr, struct sched_param *param);
+{% endhighlight %}
+5. Scheduling contention scope
+{% highlight cpp %}
+int pthread_attr_setscope(pthread_attr_t *attr, int contentionscope);
+int pthread_attr_getscope(const pthread_attr_t *attr, int *contentionscope);
+{% endhighlight %}
+6. Stack size(POSIX标准没有规定线程的堆栈大小，随体系架构的不同而不同，
+   [Linux/x86-32平台上默认为2MB](http://www.kernel.org/doc/man-pages/online/pages/man3/pthread_create.3.html))
+{% highlight cpp %}
+int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize);
+int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *stacksize);
+{% endhighlight %}
+7. Stack address
+{% highlight cpp %}
+int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stackaddr);
+int pthread_attr_getstackaddr(const pthread_attr_t *attr, void **stackaddr);
+{% endhighlight %}
+8. Stack guard (overflow) size
+{% highlight cpp %}
+int pthread_attr_getguardsize(const pthread_attr_t *attr, size_t *guardsize);
+int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize);
+{% endhighlight %}
+
+<pthread_attr_destroy感觉没多大用处>
+
+Sample：
+{% highlight cpp %}
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+
+void *fibonacci(void *arg)
+{
+    unsigned long result = 0;
+    unsigned long n = (unsigned long) arg;
+    unsigned long a = 0, b = 1;
+    if (n == 0 || n == 1)
+        result = n;
+    else
+        for (unsigned long i = 2; i <= n; i++)
+        {
+            result = a + b;
+            a = b;
+            b = result;
+        }
+    printf("Fibonacci(%ld) is %lu.\n", (long) arg, result);
+    sleep(1); // sleep to wait main() to terminate
+    pthread_exit((void *) 0); // the same as "return 0"
+}
+
+int main()
+{
+    pthread_attr_t attr;
+    pthread_attr_init(&attr); // init attr
+
+    size_t stack_size;
+    pthread_attr_getstacksize(&attr, &stack_size); // get default stack size
+    printf("Default stack size is %lu.\n", stack_size);
+
+    pthread_attr_setstacksize(&attr, 3145728); // 3MB
+    pthread_attr_getstacksize(&attr, &stack_size);
+    printf("New stack size is %lu.\n", stack_size);
+
+    pthread_t thread_id;
+    int rc = pthread_create(&thread_id, &attr, fibonacci, (void *) 12);
+    if (rc)
+    {
+        printf("Failed to create thread: %d\n", (rc));
+        exit(-1);
+    }
+
+    pthread_attr_destroy(&attr); // destroy attr
+    printf("Main() exits.\n");
+    pthread_exit(NULL); // wait for other threads to complete
+}
+{% endhighlight %}
+{% highlight text %}
+Default stack size is 8388608.
+New stack size is 3145728.
+Main() exits.
+Fibonacci(12) is 144.
+{% endhighlight %}
+
+####线程的等待(join)和分离(detach)####
+{% highlight cpp %}
+/**
+ * 阻塞调用线程直到目标线程终止
+ *
+ * @param thread 目标线程ID
+ * @param value_ptr 用来获取目标线程的返回状态，通过目标线程的pthread_exit()指定
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_join(pthread_t thread, void **value_ptr);
+/**
+ * 用默认值初始化线程属性对象
+ *
+ * @param attr 线程属性对象
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_detach(pthread_t thread);
+{% endhighlight %}
+
+如果目标线程正在运行，调用`pthread_join()`会阻塞当前线程，直到目标线程终止；如果
+目标线程已经终止(未被detach)，由于其状态为“终止态”，因此当前线程会立刻返回，不被
+阻塞。目标线程的返回状态(通过`pthread_exit()`指定)可以通过`pthread_join()`的第二
+个参数获取。多个线程同时等待(join)同一个线程的行为是不可预知的，因此必须禁止这种
+做法。
+
+线程运行结束后，其资源不会被系统回收，必须调用`pthread_join()`或
+`pthread_detach()`通知系统将其回收。《Programming With POSIX Threads》这样写道：
+
+> 分离一个正在运行的线程不会对线程带来任何影响，仅仅是通知系统当该线程结束时，其
+> 所属资源可以被回收。
+
+> 一个没有被分离的线程终止时会保留其虚拟内存，包括它们的堆栈和其他系统资源。分离
+> 线程意味着通知系统不再需要此线程，允许系统将分配给它的资源回收。
+
+> 一旦pthread_join获得返回值，终止线程就被pthread_join函数分离，并且可能在
+> pthread_join函数返回前被回收。这意味着，返回值一定不要是与终止线程堆栈相关的堆
+> 栈地址，因为该地址上的值可能在调用线程能够访问之前就被覆盖了。
+
 ###Mutexes###
 ###Condition variables###
 ###Synchronization###
