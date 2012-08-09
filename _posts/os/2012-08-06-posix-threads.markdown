@@ -225,8 +225,7 @@ int pthread_detach(pthread_t thread);
 如果目标线程正在运行，调用`pthread_join()`会阻塞当前线程，直到目标线程终止；如果
 目标线程已经终止(未被detach)，由于其状态为“终止态”，因此当前线程会立刻返回，不被
 阻塞。目标线程的返回状态(通过`pthread_exit()`指定)可以通过`pthread_join()`的第二
-个参数获取。多个线程同时等待(join)同一个线程的行为是不可预知的，因此必须禁止这种
-做法。
+个参数获取。多个线程同时等待(join)同一个线程的行为是不可预知的，必须禁止这种做法。
 
 线程运行结束后，其资源不会被系统回收，必须调用`pthread_join()`或
 `pthread_detach()`通知系统将其回收。《Programming With POSIX Threads》这样写道：
