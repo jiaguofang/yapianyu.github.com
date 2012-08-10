@@ -95,6 +95,7 @@ int pthread_attr_destroy(pthread_attr_t *attr);
 `pthread_exit()`，这样主线程会被阻塞并等待所有其它线程结束。
 
 <pthread_exit和pthread_cancel之间的关系>
+<pthread_exit和return的关系>
 
 线程创建时会被设置以默认的属性(attribute)，其中一部分属性可以通过修改属性对象
 (attribute object)来改变，包括：
@@ -240,7 +241,7 @@ void *fibonacci(void *arg)
             b = result;
         }
     printf("Fibonacci(%ld) is %lu.\n", (long) arg, result);
-    pthread_exit((void *) arg); // return (void *) arg;
+    pthread_exit(arg); // return arg;
 }
 
 int main()
@@ -270,6 +271,7 @@ int main()
         }
     }
 
+    pthread_attr_destroy(&attr);
     void *status;
     for (long i = 0; i < NUM_THREADS; i++)
     {
@@ -283,10 +285,10 @@ int main()
     }
 
     printf("Main() exits.\n");
-    pthread_exit(NULL);
 }
 {% endhighlight %}
 {% highlight cpp %}
+yapianyu@yapianyu-pc:~/Desktop$ ./a.out
 Default stack size is 8388608.
 New stack size is 3145728.
 Fibonacci(5) is 5.
@@ -315,7 +317,139 @@ Return code from thread is 10.
 Return code from thread is 11.
 Main() exits.
 {% endhighlight %}
+
 ###Mutexes###
+####互斥量的创建与销毁####
+{% highlight cpp %}
+/**
+ * 用参数attr初始化互斥量
+ *
+ * @param mutex 互斥量
+ * @param attr 互斥量属性
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
+
+/**
+ * 销毁互斥量对象，让它的状态变为非初始化的
+ *
+ * @param mutex 互斥量
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_mutex_destroy(pthread_mutex_t *mutex);
+{% endhighlight %}
+
+初始化互斥量的方式有两种：
+
+1. 静态初始化
+{% highlight cpp %}
+pthread_mutex_t mymutex = PTHREAD_MUTEX_INITIALIZER;
+{% endhighlight %}
+2. 动态初始化
+
+----------
+####Sample####
+{% highlight cpp %}
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define NUM_THREADS_LOCK 100 // threads number using pthread_mutex_lock()
+#define NUM_THREADS_TRYLOCK 100 // threads number using pthread_mutex_lock()
+#define SUM_TO_NUM 1000 // each thread sum from 1 to 1000
+
+long sum = 0;
+pthread_mutex_t sum_mutex;
+
+// using pthread_mutex_lock()
+void *sum_lock(void *arg)
+{
+    for (long i = 1; i <= (long) arg; i++)
+    {
+        // The thread will be blocked if the mutex is locked by other thread
+        pthread_mutex_lock(&sum_mutex);
+        sum += i;
+        pthread_mutex_unlock(&sum_mutex);
+    }
+    pthread_exit(NULL);
+}
+
+// using pthread_mutex_trylock()
+void *sum_trylock(void *arg)
+{
+    long trylock_failed = 0;
+    for (long i = 1; i <= (long) arg; i++)
+    {
+        // pthread_mutex_trylock() will return a non-zero value
+        // if the mutex is locked by other thread
+        while (pthread_mutex_trylock(&sum_mutex))
+            trylock_failed++;
+        sum += i;
+        pthread_mutex_unlock(&sum_mutex);
+    }
+    pthread_exit((void *) trylock_failed);
+}
+
+int main()
+{
+    pthread_mutex_init(&sum_mutex, NULL); // init mutex
+
+    pthread_attr_t attr;
+    pthread_attr_init(&attr); // init attr
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE); // set joinable
+
+    int rc;
+    pthread_t thread_id[NUM_THREADS_LOCK + NUM_THREADS_TRYLOCK];
+    for (long i = 0; i < NUM_THREADS_LOCK; i++)
+    {
+        rc = pthread_create(&thread_id[i], &attr, sum_lock, (void *) SUM_TO_NUM); // create threads
+        if (rc)
+        {
+            printf("Failed to create thread %ld: %s.\n", i, strerror(rc));
+            exit(-1);
+        }
+    }
+    for (long i = 0; i < NUM_THREADS_TRYLOCK; i++)
+    {
+        rc = pthread_create(&thread_id[i + NUM_THREADS_LOCK], &attr,
+                sum_trylock, (void *) SUM_TO_NUM); // create threads
+        if (rc)
+        {
+            printf("Failed to create thread %ld: %s.\n", i + NUM_THREADS_LOCK, strerror(rc));
+            exit(-1);
+        }
+    }
+
+    void *status;
+    long total_trylock_failed = 0;
+    for (long i = 0; i < NUM_THREADS_LOCK + NUM_THREADS_TRYLOCK; i++)
+    {
+        rc = pthread_join(thread_id[i], &status); // join every thread
+        if (rc)
+        {
+            printf("Failed to join thread %ld: %s.\n", i, strerror(rc));
+            exit(-1);
+        }
+        total_trylock_failed += (long) status; // sum up failed pthread_mutex_trylock()
+    }
+    
+    pthread_attr_destroy(&attr);
+    pthread_mutex_destroy(&sum_mutex);
+
+    printf("Total times pthread_mutex_trylock() failed = %ld.\n", total_trylock_failed);
+    printf("Sum = %ld.\n", sum);
+    printf("Actual sum = %ld.\n", (long)
+        (NUM_THREADS_LOCK + NUM_THREADS_TRYLOCK) * (1 + SUM_TO_NUM) * SUM_TO_NUM / 2);
+}
+{% endhighlight %}
+{% highlight text %}
+yapianyu@yapianyu-pc:~/Desktop$ ./a.out
+Total times pthread_mutex_trylock() failed = 2193647.
+Sum = 100100000.
+Actual sum = 100100000.
+{% endhighlight %}
 ###Condition variables###
 ###Synchronization###
 
