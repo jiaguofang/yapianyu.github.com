@@ -13,15 +13,15 @@ Pthreads API可以(非正式地)分为四组：
 
 1. **Thread management**：直接操作线程的API，如create，detach，join等。也包括设
    置(set)和查询(query)线程属性(如joinable，scheduling等)的函数。以`pthread_`和
-   `pthread_attr_`开头；
+   `pthread_attr_`命名；
 2. **Mutexes**：Mutual exclusion的简称，用于处理线程同步问题。互斥量函数提供了对
    互斥量的create，destroy，lock和unlock操作，同时也包括设置(set)和修改(modify)
-   与互斥量相关的属性。以`pthread_mutex_`和`pthread_mutexattr_`开头；
+   与互斥量相关的属性。以`pthread_mutex_`和`pthread_mutexattr_`命名；
 3. **Condition variables**：用来通知共享数据的状态信息。包括对条件变量的create，
    destroy，wait和signal操作，以及设置(set)和查询(query)条件变量属性。以
-   `pthread_cond_`和`pthread_condattr_`开头；
+   `pthread_cond_`和`pthread_condattr_`命名；
 4. **Synchronization**：操作读写锁和barrier。以`pthread_rwlock_`和
-   `pthread_barrier_`开头。
+   `pthread_barrier_`命名。
 
 ###Thread management###
 ####线程的创建(create)和终止(terminate)####
@@ -287,7 +287,7 @@ int main()
     printf("Main() exits.\n");
 }
 {% endhighlight %}
-{% highlight cpp %}
+{% highlight text %}
 yapianyu@yapianyu-pc:~/Desktop$ ./a.out
 Default stack size is 8388608.
 New stack size is 3145728.
@@ -331,7 +331,7 @@ Main() exits.
 int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
 
 /**
- * 销毁互斥量对象，让它的状态变为非初始化的
+ * 销毁互斥量，让它的状态变为非初始化的
  *
  * @param mutex 互斥量
  * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
@@ -343,9 +343,16 @@ int pthread_mutex_destroy(pthread_mutex_t *mutex);
 
 1. 静态初始化
 {% highlight cpp %}
-pthread_mutex_t mymutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 {% endhighlight %}
 2. 动态初始化
+{% highlight cpp %}
+pthread_mutex_t mutex;
+pthread_mutex_init(&mutex, NULL); // pthread_mutex_init(&mutex, &attr);
+{% endhighlight %}
+
+静态和动态初始化的区别在于，动态初始化可以为互斥量设置属性`attr`，并且需要调用
+`pthread_mutex_destroy()`销毁。
 
 ----------
 ####Sample####
