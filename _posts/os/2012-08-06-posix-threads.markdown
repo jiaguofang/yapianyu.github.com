@@ -143,66 +143,7 @@ int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize);
 
 <pthread_attr_destroy感觉没多大用处>
 
-Sample：
-{% highlight cpp %}
-#include <pthread.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-
-void *fibonacci(void *arg)
-{
-    unsigned long result = 0;
-    unsigned long n = (unsigned long) arg;
-    unsigned long a = 0, b = 1;
-    if (n == 0 || n == 1)
-        result = n;
-    else
-        for (unsigned long i = 2; i <= n; i++)
-        {
-            result = a + b;
-            a = b;
-            b = result;
-        }
-    printf("Fibonacci(%ld) is %lu.\n", (long) arg, result);
-    sleep(1); // sleep to wait main() to terminate
-    pthread_exit((void *) 0); // the same as "return 0"
-}
-
-int main()
-{
-    pthread_attr_t attr;
-    pthread_attr_init(&attr); // init attr
-
-    size_t stack_size;
-    pthread_attr_getstacksize(&attr, &stack_size); // get default stack size
-    printf("Default stack size is %lu.\n", stack_size);
-
-    pthread_attr_setstacksize(&attr, 3145728); // 3MB
-    pthread_attr_getstacksize(&attr, &stack_size);
-    printf("New stack size is %lu.\n", stack_size);
-
-    pthread_t thread_id;
-    int rc = pthread_create(&thread_id, &attr, fibonacci, (void *) 12);
-    if (rc)
-    {
-        printf("Failed to create thread: %d\n", (rc));
-        exit(-1);
-    }
-
-    pthread_attr_destroy(&attr); // destroy attr
-    printf("Main() exits.\n");
-    pthread_exit(NULL); // wait for other threads to complete
-}
-{% endhighlight %}
-{% highlight text %}
-Default stack size is 8388608.
-New stack size is 3145728.
-Main() exits.
-Fibonacci(12) is 144.
-{% endhighlight %}
-
+----------
 ####线程的等待(join)和分离(detach)####
 {% highlight cpp %}
 /**
@@ -245,6 +186,135 @@ int pthread_detach(pthread_t thread);
 > pthread_join函数返回前被回收。这意味着，返回值一定不要是与终止线程堆栈相关的堆
 > 栈地址，因为该地址上的值可能在调用线程能够访问之前就被覆盖了。
 
+-----------
+####其它函数####
+{% highlight cpp %}
+/**
+ * 获得调用线程的ID
+ *
+ * @return 调用线程的ID
+ */
+pthread_t pthread_self(void);
+
+/**
+ * 比较两个线程ID是否相等
+ *
+ * @param t1 线程ID
+ * @param t2 线程ID
+ * @return 相等返回非0，否则返回0
+ */
+int pthread_equal(pthread_t t1, pthread_t t2);
+{% endhighlight %}
+
+线程ID(包括其它pthread数据类型)都是不透明的(opaque)，因此不能用`==``比较两个线程
+ID是否相等。
+
+> From \<Programming With POSIX Threads\>:
+
+> Pthread数据类型是不透明的，我们不应该对其实现做任何假设，只能按照标准中描述的
+> 方式使用它们。例如，线程标志符ID可能是整型，或者是浮点型，或者是结构体，任何以
+> 不能兼容所有定义的方式使用线程ID的代码都是错误的。
+
+-----------
+####Sample####
+{% highlight cpp %}
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#define NUM_THREADS 12
+
+void *fibonacci(void *arg)
+{
+    unsigned long result = 0;
+    unsigned long n = (unsigned long) arg;
+    unsigned long a = 0, b = 1;
+    if (n == 0 || n == 1)
+        result = n;
+    else
+        for (unsigned long i = 2; i <= n; i++)
+        {
+            result = a + b;
+            a = b;
+            b = result;
+        }
+    printf("Fibonacci(%ld) is %lu.\n", (long) arg, result);
+    pthread_exit((void *) arg); // return (void *) arg;
+}
+
+int main()
+{
+    pthread_attr_t attr;
+    pthread_attr_init(&attr); // init attr
+
+    size_t stack_size;
+    pthread_attr_getstacksize(&attr, &stack_size); // get default stack size
+    printf("Default stack size is %lu.\n", stack_size);
+
+    pthread_attr_setstacksize(&attr, 3145728); // set new stack size
+    pthread_attr_getstacksize(&attr, &stack_size);
+    printf("New stack size is %lu.\n", stack_size);
+
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE); // set joinable
+
+    int rc;
+    pthread_t thread_id[NUM_THREADS];
+    for (long i = 0; i < NUM_THREADS; i++)
+    {
+        rc = pthread_create(&thread_id[i], &attr, fibonacci, (void *) i); // create threads
+        if (rc)
+        {
+            printf("Failed to create thread %ld: %s.\n", i, strerror(rc));
+            exit(-1);
+        }
+    }
+
+    void *status;
+    for (long i = 0; i < NUM_THREADS; i++)
+    {
+        rc = pthread_join(thread_id[i], &status); // join every thread
+        if (rc)
+        {
+            printf("Failed to join thread %ld: %s.\n", i, strerror(rc));
+            exit(-1);
+        }
+        printf("Return code from thread is %ld.\n", (long) status); // return code equals to 'arg'
+    }
+
+    printf("Main() exits.\n");
+    pthread_exit(NULL);
+}
+{% endhighlight %}
+{% highlight cpp %}
+Default stack size is 8388608.
+New stack size is 3145728.
+Fibonacci(5) is 5.
+Fibonacci(6) is 8.
+Fibonacci(7) is 13.
+Fibonacci(8) is 21.
+Fibonacci(9) is 34.
+Fibonacci(10) is 55.
+Fibonacci(11) is 89.
+Fibonacci(4) is 3.
+Fibonacci(3) is 2.
+Fibonacci(2) is 1.
+Fibonacci(1) is 1.
+Fibonacci(0) is 0.
+Return code from thread is 0.
+Return code from thread is 1.
+Return code from thread is 2.
+Return code from thread is 3.
+Return code from thread is 4.
+Return code from thread is 5.
+Return code from thread is 6.
+Return code from thread is 7.
+Return code from thread is 8.
+Return code from thread is 9.
+Return code from thread is 10.
+Return code from thread is 11.
+Main() exits.
+{% endhighlight %}
 ###Mutexes###
 ###Condition variables###
 ###Synchronization###
