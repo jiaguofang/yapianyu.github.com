@@ -76,8 +76,8 @@ div#wrapper {
 	-moz-box-shadow:0 1px 0 #FFFFFF;
 	background-color:#f4f4f4;
 	color:#111;
-	font-size:14px;
-	line-height:190%;
+	font-size:13px;
+	line-height:150%;
 	margin:0 auto 50px;
 	padding:20px;
 	/*text-shadow:0 1px 0 #FFFFFF;*/
@@ -137,7 +137,7 @@ div#footer #feed {
 }
 div#content ul.posts li {
 	margin:7px 0 0;
-	font-size:14px;
+	font-size:12px;
 	list-style:none;
 }
 
@@ -358,7 +358,7 @@ span.balloon {
 
 #content #sidebar li {
 	list-style:none;
-	font-size:14px;
+	font-size:12px;
 }
 
 #content #sidebar li a {

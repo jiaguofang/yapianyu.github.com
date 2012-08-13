@@ -319,6 +319,14 @@ Main() exits.
 {% endhighlight %}
 
 ###Mutexes###
+线程共享进程地址空间是一把双刃剑，优点是减少线程创建和切换的代价，同时使得线程间
+通信更加方便。缺点也很明显，就是共享数据的同步问题，频繁的同步将带来性能上的损失
+，线程的异常终止还会导致整个进程的终止。
+
+共享数据的同步问题可以通过互斥量解决，互斥量就像一个“君子协议(gentlemen's
+agreement)”，各个参与线程遵守这个协议，彼此有序地访问共享数据。
+
+----------
 ####互斥量的创建与销毁####
 {% highlight cpp %}
 /**
@@ -351,11 +359,56 @@ pthread_mutex_t mutex;
 pthread_mutex_init(&mutex, NULL); // pthread_mutex_init(&mutex, &attr);
 {% endhighlight %}
 
-静态和动态初始化的区别在于，动态初始化可以为互斥量设置属性`attr`，并且需要调用
-`pthread_mutex_destroy()`销毁。
+两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_mutex_destroy()`销毁
+(两者的内存分配策略依赖于具体的`pthreads`实现，可能动态方法会在堆上申请空间——未
+经证实)。
+
+----------
+####互斥量的加锁(lock)与解锁(unlock)####
+{% highlight cpp %}
+/**
+ * 加锁互斥量，如果互斥量已经被锁住，阻塞当前线程直到互斥量被解锁
+ *
+ * @param mutex 互斥量
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+
+/**
+ * 功能和pthread_mutex_lock()一样，除了当互斥量已经被锁住时，该函数立即返回
+ *
+ * @param mutex 互斥量
+ * @return 加锁成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_mutex_trylock(pthread_mutex_t *mutex);
+
+/**
+ * 解锁互斥量，所有阻塞在该互斥量上的线程重新参与获取该互斥量
+ *
+ * @param mutex 互斥量
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+{% endhighlight %}
+
+多个线程同时调用`pthread_mutex_lock()`对同一个互斥量加锁，只有一个线程可以成功，
+其它线程将被阻塞，被阻塞的线程处于等待状态，不参与CPU调度，只有当该互斥量被解锁
+时，它们才会从等待状态转为就绪状态，重新参与CPU调度，竞争互斥量。
+
+`pthread_mutex_trylock()`的区别在于它不会阻塞当前线程，无论如何都会立即返回。当
+互斥量已经被锁住，它会返回指示“busy”的错误代码，因此可以避免发生死锁。
+
+使用`pthread_mutex_unlock()`时应当注意，只有锁住互斥量的线程才能解锁该互斥量，否
+则会发生错误。
+
+----------
+####避免死锁####
+http://www2.chrishardick.com:1099/Notes/Computing/C/pthreads/mutexes.html
 
 ----------
 ####Sample####
+下面这个例子统计了`pthread_mutex_trylock()`执行失败的次数。
+
 {% highlight cpp %}
 #include <pthread.h>
 #include <stdio.h>
@@ -363,8 +416,8 @@ pthread_mutex_init(&mutex, NULL); // pthread_mutex_init(&mutex, &attr);
 #include <string.h>
 #include <stdlib.h>
 
-#define NUM_THREADS_LOCK 100 // threads number using pthread_mutex_lock()
-#define NUM_THREADS_TRYLOCK 100 // threads number using pthread_mutex_lock()
+#define NUM_THREADS_LOCK 100 // thread number using pthread_mutex_lock()
+#define NUM_THREADS_TRYLOCK 100 // thread number using pthread_mutex_lock()
 #define SUM_TO_NUM 1000 // each thread sum from 1 to 1000
 
 long sum = 0;
@@ -458,6 +511,7 @@ Sum = 100100000.
 Actual sum = 100100000.
 {% endhighlight %}
 ###Condition variables###
+
 ###Synchronization###
 
 
