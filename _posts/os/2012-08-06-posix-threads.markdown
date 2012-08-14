@@ -30,7 +30,7 @@ Pthreads API可以(非正式地)分为四组：
  * 创建一个线程
  *
  * @param thread 线程ID
- * @param attr 属性对象，用于设置线程属性，默认值为NULL
+ * @param attr 属性对象，用于设置线程属性，若attr为NULL，将以默认属性创建线程
  * @param start_routine 指向线程函数的指针，参数和返回值都为void *
  * @param arg 传递给start_routine()的参数
  * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
@@ -326,11 +326,10 @@ Main() exits.
 共享数据的同步问题可以通过互斥量解决，互斥量就像一个“君子协议(gentlemen's
 agreement)”，各个参与线程遵守这个协议，彼此有序地访问共享数据。
 
-----------
 ####互斥量的创建与销毁####
 {% highlight cpp %}
 /**
- * 用参数attr初始化互斥量
+ * 用参数attr初始化互斥量，若attr为NULL，将以默认值初始化mutex
  *
  * @param mutex 互斥量
  * @param attr 互斥量属性
@@ -357,6 +356,7 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 {% highlight cpp %}
 pthread_mutex_t mutex;
 pthread_mutex_init(&mutex, NULL); // pthread_mutex_init(&mutex, &attr);
+pthread_mutex_destroy(&mutex);
 {% endhighlight %}
 
 两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_mutex_destroy()`销毁
@@ -407,7 +407,8 @@ http://www2.chrishardick.com:1099/Notes/Computing/C/pthreads/mutexes.html
 
 ----------
 ####Sample####
-下面这个例子统计了`pthread_mutex_trylock()`执行失败的次数。
+下面这个例子部分线程调用`pthread_mutex_lock()`，另外一些调用`pthread_mutex_trylock()`，
+同时记录`pthread_mutex_trylock()`执行失败的次数。
 
 {% highlight cpp %}
 #include <pthread.h>
@@ -428,7 +429,8 @@ void *sum_lock(void *arg)
 {
     for (long i = 1; i <= (long) arg; i++)
     {
-        // The thread will be blocked if the mutex is locked by other thread
+        // The thread will be blocked if the mutex is locked
+        // by other thread.
         pthread_mutex_lock(&sum_mutex);
         sum += i;
         pthread_mutex_unlock(&sum_mutex);
@@ -443,7 +445,7 @@ void *sum_trylock(void *arg)
     for (long i = 1; i <= (long) arg; i++)
     {
         // pthread_mutex_trylock() will return a non-zero value
-        // if the mutex is locked by other thread
+        // if the mutex is locked by other thread.
         while (pthread_mutex_trylock(&sum_mutex))
             trylock_failed++;
         sum += i;
@@ -511,6 +513,84 @@ Sum = 100100000.
 Actual sum = 100100000.
 {% endhighlight %}
 ###Condition variables###
+条件变量和互斥量一样，也提供对共享数据的同步，唯一区别是前者有条件地进行同步(条
+件等待->条件满足->被唤醒)。如果不使用条件变量，要实现相同功能，就需要在代码中不
+停地轮询(polling)，直到条件满足，这显然很浪费资源。
+
+####条件变量的创建与销毁####
+{% highlight cpp %}
+/**
+ * 用参数attr初始化条件变量，若attr为NULL，将以默认值初始化cond
+ *
+ * @param cond 条件变量
+ * @param attr 条件变量属性
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr);
+
+/**
+ * 销毁条件变量，让它的状态变为非初始化的
+ *
+ * @param cond 条件变量
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_cond_destroy(pthread_cond_t *cond);
+{% endhighlight %}
+初始化条件变量的方式有两种：
+
+1. 静态初始化
+{% highlight cpp %}
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+{% endhighlight %}
+2. 动态初始化
+{% highlight cpp %}
+pthread_cond_t cond;
+pthread_cond_init(&cond, NULL); // pthread_cont_init(&cond, &attr);
+pthread_cond_destroy(&cond);
+{% endhighlight %}
+
+两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_cond_destroy()`销毁。
+
+----------
+####条件变量的等待(wait)和发送信号(signal)####
+{% highlight cpp %}
+/**
+ * 在条件变量cond上阻塞线程
+ *
+ * @param cond 条件变量
+ * @param mutex 与条件变量关联的互斥量
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex);
+
+int pthread_cond_timedwait(pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime);
+
+/**
+ * 唤醒阻塞在条件变量cond上的一个线程(单独发信号)
+ *
+ * @param cond 条件变量
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_cond_signal(pthread_cond_t *cond);
+
+/**
+ * 唤醒阻塞在条件变量cond上的所有线程(广播)
+ *
+ * @param cond 条件变量
+ * @return 成功返回0，否则返回<errno.h>头文件中的错误代码，可以通过strerror()获取错误代码的描述
+ */
+int pthread_cond_broadcast(pthread_cond_t *cond);
+{% endhighlight %}
+
+`pthread_cond_wait()`的用法如下
+http://stackoverflow.com/questions/6312342/pthread-cond-wait-and-mutex-requirement
+{% highlight cpp %}
+pthread_mutex_lock(&mutex);
+...
+pthread_cond_wait(&cond, &mutex);
+...
+pthread_mutex_unlock(&mutex);
+{% endhighlight %}
 
 ###Synchronization###
 
