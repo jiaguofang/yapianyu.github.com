@@ -552,7 +552,7 @@ pthread_cond_destroy(&cond);
 两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_cond_destroy()`销毁。
 
 ----------
-####条件变量的等待(wait)和发送信号(signal)####
+####条件变量的等待(wait)和发信号(signal)####
 {% highlight cpp %}
 /**
  * 在条件变量cond上阻塞线程
@@ -582,15 +582,59 @@ int pthread_cond_signal(pthread_cond_t *cond);
 int pthread_cond_broadcast(pthread_cond_t *cond);
 {% endhighlight %}
 
-`pthread_cond_wait()`的用法如下
-http://stackoverflow.com/questions/6312342/pthread-cond-wait-and-mutex-requirement
+有关`pthread_cond_wait()`和`pthread_cond_signal()`的用法一般如下：
 {% highlight cpp %}
-pthread_mutex_lock(&mutex);
-...
-pthread_cond_wait(&cond, &mutex);
-...
+// code snippet of pthread_cond_wait()
+pthread_mutex_lock(&mutex); // <===== why?
+while(<condition is false>) // <===== why?
+    pthread_cond_wait(&cond, &mutex);
+<do some real stuff>;
+pthread_mutex_unlock(&mutex);
+
+// code snippet of pthread_cond_signal()
+pthread_mutex_lock(&mutex); // <===== why?
+<set condition to true>;
+pthread_cond_signal(&cond);
 pthread_mutex_unlock(&mutex);
 {% endhighlight %}
+
+这里有4个问题：
+
+Q1. 为何要在`pthread_cond_wait()`之前lock mutex？  
+Q2. 为何要在`pthread_cond_wait()`之前判断condition是否为`false`，还要放在`while`中？  
+Q3. 为何要在`pthread_cond_signal()`之前lock mutex？
+
+Q1和Q3是因为condition与共享数据有关，lock mutex是为了保护共享数据。
+
+书\<Programming With POSIX Threads\>中对Q2也讨论过，文中给出的解释是存在**被拦截
+的唤醒(intercepted wakeup)**和**假唤醒(spurious wakeup)**。关于**被拦截的唤醒**，
+参见以下多线程代码：
+
+{% highlight text %}
+Thread A                            Thread B                           Thread C
+
+pthread_mutex_lock(&mutex);
+// thread blocked, mutex released
+pthread_cond_wait(&cond, &mutex);
+                                    pthread_mutex_lock(&mutex);
+                                    <set condition to true>;
+                                    pthread_cond_signal(&cond);
+                                    pthread_mutex_unlock(&mutex);
+                                                                       pthread_mutex_lock(&mutex);
+                                                                       <set condition to false>
+                                                                       pthread_mutex_unlock(&mutex);
+// thread unblocked, mutex aquired
+// condition is not true now
+<do some real stuff>;
+pthread_mutex_unlock(&mutex);
+{% endhighlight %}
+
+可以看到Thread A从被Thread B唤醒到lock mutex这段时间内，被Thread C“**偷去了**“CPU。
+当Thread C修改condition并unlock mutex后，Thread A看到的condition已经为`false`了。
+
+正如\<Programming With POSIX Threads\>所说：
+> 当线程醒来时，再次测试谓词同样重要。应该总是在循环中等待条件变量，来避免程序错
+> 误、多处理器竞争和假唤醒。
 
 ###Synchronization###
 
@@ -669,3 +713,6 @@ pthread_cond_broadcast
 https://computing.llnl.gov/tutorials/pthreads/
 http://www.ibm.com/developerworks/linux/library/l-posix1/index.html
 
+[Stack Overflow: pthread_cond_wait and mutex requirement](http://stackoverflow.com/a/6312416/1037167)  
+[Stack Overflow: Calling pthread_cond_signal without locking mutex](http://stackoverflow.com/a/4567919/1037167)  
+[Stack Overflow: Pthread and wait conditions](http://stackoverflow.com/a/4821672/1037167)
