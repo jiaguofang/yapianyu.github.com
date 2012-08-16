@@ -407,7 +407,7 @@ http://www2.chrishardick.com:1099/Notes/Computing/C/pthreads/mutexes.html
 
 ----------
 ####Sample####
-下面这个例子部分线程调用`pthread_mutex_lock()`，另外一些调用`pthread_mutex_trylock()`，
+下面这个例子中，部分线程调用`pthread_mutex_lock()`，另外一些调用`pthread_mutex_trylock()`，
 同时记录`pthread_mutex_trylock()`执行失败的次数。
 
 {% highlight cpp %}
@@ -652,6 +652,149 @@ pthread_mutex_unlock(&mutex);
 > 当线程醒来时，再次测试谓词同样重要。应该总是在循环中等待条件变量，来避免程序错
 > 误、多处理器竞争和假唤醒。
 
+----------
+####Sample####
+下面这个例子是典型的生产者(Producer)/消费者(Consumer)问题，若干个生产者往
+`buffer`里写内容，若干个消费者从`buffer`中取内容，通过`pthread_cond_broadcast()`
+唤醒阻塞的生产者/消费者线程。
+{% highlight cpp %}
+#include <pthread.h>
+#include <stdio.h>
+#include <iostream>
+#include <deque>
+
+using namespace std;
+
+#define PRODUCER_NUM 10
+#define CONSUMER_NUM 10
+
+#define BUFFER_SIZE 100
+deque<int> buffer;
+
+int task_id = 0;
+
+#define TOTAL_TASKS 20 // stop producing/consuming if TOTAL_TASKS reaches
+int produced = 0; // how many tasks produced
+int consumed = 0; // how many tasks consumed
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond_not_full = PTHREAD_COND_INITIALIZER;
+pthread_cond_t cond_not_empty = PTHREAD_COND_INITIALIZER;
+
+void *producer(void *arg)
+{
+    while (true)
+    {
+        pthread_mutex_lock(&mutex);
+        // stop producing if TOTAL_TASKS reaches
+        if (produced >= TOTAL_TASKS)
+        {
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+        while (buffer.size() == BUFFER_SIZE)
+            pthread_cond_wait(&cond_not_full, &mutex); // <===== cond_not_full
+        printf("Producer #%ld produces task %d.\n", (long) arg, task_id);
+        buffer.push_back(task_id++);
+        produced++;
+        pthread_cond_broadcast(&cond_not_empty); // <===== cond_not_empty
+        pthread_mutex_unlock(&mutex);
+
+        usleep(1000);
+    }
+
+    return (NULL);
+}
+
+void *consumer(void *arg)
+{
+    while (true)
+    {
+        pthread_mutex_lock(&mutex);
+        // stop consuming if TOTAL_TASKS reaches
+        if (consumed >= TOTAL_TASKS)
+        {
+            pthread_mutex_unlock(&mutex);
+            break;
+        }
+        while (buffer.size() == 0)
+            pthread_cond_wait(&cond_not_empty, &mutex); // cond_not_empty
+        printf("\t\t\t\tConsumer #%ld consumes task %d.\n", (long) arg,
+                buffer.front());
+        buffer.pop_front();
+        consumed++;
+        pthread_cond_broadcast(&cond_not_full); // cond_not_full
+        pthread_mutex_unlock(&mutex);
+
+        usleep(1000);
+    }
+
+    pthread_exit(NULL);
+}
+
+int main()
+{
+    pthread_t prod_threads[PRODUCER_NUM];
+    pthread_t cons_threads[CONSUMER_NUM];
+
+    for (long i = 0; i < PRODUCER_NUM; i++)
+        pthread_create(&prod_threads[i], NULL, producer, (void *) i);
+
+    for (long i = 0; i < CONSUMER_NUM; i++)
+        pthread_create(&cons_threads[i], NULL, consumer, (void *) i);
+
+    for (long i = 0; i < PRODUCER_NUM; i++)
+        pthread_join(prod_threads[i], NULL);
+
+    for (long i = 0; i < CONSUMER_NUM; i++)
+        pthread_join(cons_threads[i], NULL);
+
+    pthread_exit(NULL);
+}
+{% endhighlight %}
+{% highlight text %}
+yapianyu@yapianyu-pc:~/Desktop$ ./a.out
+Producer #9 produces task 0.
+                                Consumer #3 consumes task 0.
+Producer #7 produces task 1.
+Producer #8 produces task 2.
+Producer #5 produces task 3.
+                                Consumer #2 consumes task 1.
+                                Consumer #1 consumes task 2.
+                                Consumer #0 consumes task 3.
+Producer #6 produces task 4.
+                                Consumer #4 consumes task 4.
+Producer #4 produces task 5.
+                                Consumer #9 consumes task 5.
+Producer #3 produces task 6.
+                                Consumer #7 consumes task 6.
+Producer #2 produces task 7.
+                                Consumer #5 consumes task 7.
+Producer #1 produces task 8.
+                                Consumer #6 consumes task 8.
+Producer #0 produces task 9.
+                                Consumer #8 consumes task 9.
+Producer #9 produces task 10.
+                                Consumer #3 consumes task 10.
+Producer #7 produces task 11.
+Producer #8 produces task 12.
+Producer #5 produces task 13.
+                                Consumer #2 consumes task 11.
+                                Consumer #1 consumes task 12.
+                                Consumer #0 consumes task 13.
+Producer #6 produces task 14.
+                                Consumer #4 consumes task 14.
+Producer #6 produces task 15.
+Producer #5 produces task 16.
+Producer #8 produces task 17.
+                                Consumer #2 consumes task 15.
+Producer #7 produces task 18.
+                                Consumer #0 consumes task 16.
+                                Consumer #1 consumes task 17.
+                                Consumer #4 consumes task 18.
+Producer #9 produces task 19.
+                                Consumer #3 consumes task 19.
+{% endhighlight %}
 ###Synchronization###
 
 
