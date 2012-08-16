@@ -582,23 +582,39 @@ int pthread_cond_signal(pthread_cond_t *cond);
 int pthread_cond_broadcast(pthread_cond_t *cond);
 {% endhighlight %}
 
-有关`pthread_cond_wait()`和`pthread_cond_signal()`的用法一般如下：
+互斥量与条件变量是**一对多**的关系，即任何条件变量在特定时刻只能与一个互斥量相关
+联，而互斥量则可以同时与多个条件变量关联。
+
+`pthread_cond_wait()`和`pthread_cond_timedwait()`执行如下操作：
+
+1. 解锁相关互斥量，阻塞调用线程，并等待被唤醒；
+2. 被唤醒并成功返回之后，互斥量被当前线程锁住。
+
+`pthread_cond_signal()`和`pthread_cond_broadcast()`执行如下操作：
+
+1. 唤醒等待在条件变量上的线程(一个或多个)；
+2. 在当前线程解锁互斥量之后，被唤醒的线程开始竞争互斥量。
+
+无论有没有线程等待在条件变量上，signal或broadcast后条件变量都将被复位。如果此后
+有线程被阻塞在条件变量上，是不会被唤醒的。
+
+`pthread_cond_wait()`和`pthread_cond_signal()`的一般用法如下：
 {% highlight cpp %}
 // code snippet of pthread_cond_wait()
-pthread_mutex_lock(&mutex); // <===== why?
-while(<condition is false>) // <===== why?
+pthread_mutex_lock(&mutex); // <===== Q1
+while(<condition is false>) // <===== Q2
     pthread_cond_wait(&cond, &mutex);
 <do some real stuff>;
 pthread_mutex_unlock(&mutex);
 
 // code snippet of pthread_cond_signal()
-pthread_mutex_lock(&mutex); // <===== why?
+pthread_mutex_lock(&mutex); // <===== Q3
 <set condition to true>;
 pthread_cond_signal(&cond);
 pthread_mutex_unlock(&mutex);
 {% endhighlight %}
 
-这里有4个问题：
+这里有几个问题：
 
 Q1. 为何要在`pthread_cond_wait()`之前lock mutex？  
 Q2. 为何要在`pthread_cond_wait()`之前判断condition是否为`false`，还要放在`while`中？  
@@ -629,7 +645,7 @@ pthread_cond_wait(&cond, &mutex);
 pthread_mutex_unlock(&mutex);
 {% endhighlight %}
 
-可以看到Thread A从被Thread B唤醒到lock mutex这段时间内，被Thread C“**偷去了**“CPU。
+可以看到Thread A从被Thread B唤醒到lock mutex这段时间内，被Thread C**偷去了**CPU。
 当Thread C修改condition并unlock mutex后，Thread A看到的condition已经为`false`了。
 
 正如\<Programming With POSIX Threads\>所说：
