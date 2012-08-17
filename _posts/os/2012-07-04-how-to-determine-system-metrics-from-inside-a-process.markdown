@@ -18,20 +18,17 @@ tags: CPU使用率 内存使用量 uptime 线程数 C++
 文中会给出Windows和Linux平台上的解决办法。
 
 ###系统CPU使用率###
-关于CPU使用率，首先必须澄清并不存在现成的API，如GetSystemCPUUsage()或者
-GetProcessCPUUsage()。当我们打开任务管理器时，可以看到：
+关于CPU使用率，首先必须澄清并不存在现成的API，如GetSystemCPUUsage()或者GetProcessCPUUsage()。当我们打开任务管理器时，可以看到：
 
 * CPU使用率包括系统的CPU使用率和进程的CPU使用率
 * CPU使用率每隔一段时间会刷新一次
 
-![](/image/windows-task-manager.png)  
-也就是说，CPU使用率是采样周期内CPU忙（非空闲）的时间和采样周期的比值，是一个平均
-值。因此，系统CPU使用率可以描述为采样周期内系统运行于非idle状态下的时间和采样周
-期的比值。
+![](/image/windows-task-manager.png)
+
+也就是说，CPU使用率是采样周期内CPU忙（非空闲）的时间和采样周期的比值，是一个平均值。因此，系统CPU使用率可以描述为采样周期内系统运行于非idle状态下的时间和采样周期的比值。
 
 ####Windiws####
-函数[GetSystemTimes()](http://msdn.microsoft.com/en-us/library/ms724400\(VS.85\).aspx)
-可以用来获取系统idle的时间、运行在kernel和user模式下的时间，MSDN是这样描述的：
+函数[GetSystemTimes()](http://msdn.microsoft.com/en-us/library/ms724400\(VS.85\).aspx)可以用来获取系统idle的时间、运行在kernel和user模式下的时间，MSDN是这样描述的：
 {% highlight cpp %}
 /**
  * Retrieves system timing information. On a multiprocessor system, the values
@@ -62,9 +59,7 @@ BOOL WINAPI GetSystemTimes(
 因此，**CPU% = (Δt\_kernel + Δt\_user - Δt\_idle) / (Δt\_kernel + Δt\_user)**。
 
 ####Linux####
-Linux将各种系统状态信息保存在文件/proc/stat中，比如CPU运行情况、中断统计、启
-动时间、上下文切换次数、运行中的进程等等。在我的ubuntu 11.10中运行`cat /proc/stat`
-，输出：
+Linux将各种系统状态信息保存在文件/proc/stat中，比如CPU运行情况、中断统计、启动时间、上下文切换次数、运行中的进程等等。在我的ubuntu 11.10中运行`cat /proc/stat`，输出：
 {% highlight text %}
 > cat /proc/stat
 cpu  204090 1068 325035 33868070 91116 2 5869 0 0 0
@@ -79,26 +74,17 @@ procs_running 1
 procs_blocked 0
 softirq 15551046 0 3479000 34799 511332 489536 0 21879 2048010 12831 8953659
 {% endhighlight %}
-第一行是所有CPU的统计信息汇总，后面几行'cpuN'分别表示每个CPU的统计信息，因为我们的
-目标是求得CPU的整体使用率，所以只需要关注第一行即可。[Linux Programmer's
-Manual](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)这样描
-述/proc/stat：
+第一行是所有CPU的统计信息汇总，后面几行'cpuN'分别表示每个CPU的统计信息，因为我们的目标是求得CPU的整体使用率，所以只需要关注第一行即可。[Linux Programmer's Manual](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)这样描述/proc/stat：
 
 > cpu  3357 0 4313 1362393  
-> The amount of time, measured in units of USER_HZ (1/100ths of a second on most
-> architectures, use sysconf(_SC_CLK_TCK) to obtain the right value), that the
-> system spent in user mode, user mode with low priority (nice), system mode, and
-> the idle task, respectively.
+> The amount of time, measured in units of USER_HZ (1/100ths of a second on most architectures, use sysconf(_SC_CLK_TCK) to obtain the right value), that the system spent in user mode, user mode with low priority (nice), system mode, and the idle task, respectively.
 
-因此，**CPU% = (Δt\_user + Δt\_nice + Δt\_system) / (Δt\_user + Δt\_nice + Δ
-t\_kernel + Δt\_idle)**。
+因此，**CPU% = (Δt\_user + Δt\_nice + Δt\_system) / (Δt\_user + Δt\_nice + Δt\_kernel + Δt\_idle)**。
 
 代码参见 [double SystemInfo::GetSystemCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/SystemInfo.cpp)
 
 ###系统物理内存总大小###
-Windows和Linux有各自的API：
-[GlobalMemoryStatusEx()](http://msdn.microsoft.com/en-us/library/windows/desktop/aa366589\(v=vs.85\).aspx)
-和[sysinfo()](http://linux.die.net/man/2/sysinfo)。
+Windows和Linux有各自的API：[GlobalMemoryStatusEx()](http://msdn.microsoft.com/en-us/library/windows/desktop/aa366589\(v=vs.85\).aspx)和[sysinfo()](http://linux.die.net/man/2/sysinfo)。
 
 {% highlight cpp %}
 double SystemInfo::GetSystemMemoryTotal()
@@ -156,12 +142,10 @@ double SystemInfo::GetSystemMemoryUsed()
 {% endhighlight %}
 
 ###进程CPU使用率###
-进程的CPU使用率与系统的计算方法类似，只不过改为采样周期内进程运行于处理器上的时间和
-采样周期的比值。
+进程的CPU使用率与系统的计算方法类似，只不过改为采样周期内进程运行于处理器上的时间和采样周期的比值。
 
 ####Windiws####
-函数[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)
-可以用来获取进程在kernel和user模式下的运行时间。MSDN是这样描述的：
+函数[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)可以用来获取进程在kernel和user模式下的运行时间。MSDN是这样描述的：
 {% highlight cpp %}
 /**
  * Retrieves timing information for the specified process.
@@ -187,39 +171,28 @@ BOOL WINAPI GetProcessTimes(
 因此，**CPU% = (Δt\_proc\_kernel + Δt\_proc\_user) / (Δt\_sys\_kernel + Δt\_sys\_user)**。
 
 ####Linux####
-Linux下可以通过读取文件/proc/[pid]/stat获得进程在kernel和user模式下的运行时间。在
-我的ubuntu 11.10中运行`cat /proc/3761/stat`，输出：
+Linux下可以通过读取文件/proc/[pid]/stat获得进程在kernel和user模式下的运行时间。在我的ubuntu 11.10中运行`cat /proc/3761/stat`，输出：
 {% highlight cpp %}
 > cat /proc/3761/stat
 3761 (chrome) S 3654 1925 1925 0 -1 4202560 640712 0 191 0 31802 58992 0 0 20 0
 8 0 2980922 1031110656 10654 18446744073709551615 1 1 0 0 0 0 0 67112962 65536
 18446744073709551615 0 0 17 1 0 0 305 0 0
 {% endhighlight %}
-这里最关键的是第14和第15个参数（31802和58992），分别表示进程在user和kernel模式下
-的运行时间。
+这里最关键的是第14和第15个参数（31802和58992），分别表示进程在user和kernel模式下的运行时间。
 
 > utime %lu  
-> Amount of time that this process has been scheduled in user
-> mode, measured in clock ticks (divide by sysconf(_SC_CLK_TCK). This
-> includes guest time, guest_time (time spent running a virtual CPU, see
-> below), so that applications that are not aware of the guest time field do
-> not lose that time from their calculations.
+> Amount of time that this process has been scheduled in user mode, measured in clock ticks (divide by sysconf(_SC_CLK_TCK). This includes guest time, guest_time (time spent running a virtual CPU, see below), so that applications that are not aware of the guest time field do not lose that time from their calculations.
 
 > stime %lu  
-> Amount of time that this process has been scheduled in
-> kernel mode, measured in clock ticks (divide by sysconf(_SC_CLK_TCK).
+> Amount of time that this process has been scheduled in kernel mode, measured in clock ticks (divide by sysconf(_SC_CLK_TCK).
 
-因此，**CPU% = (Δt\_proc\_user + Δt\_proc\_kernel) / (Δt\_sys\_user + Δt\_sys\_nice + Δ
-t\_sys\_kernel + Δt\_sys\_idle)**。
+因此，**CPU% = (Δt\_proc\_user + Δt\_proc\_kernel) / (Δt\_sys\_user + Δt\_sys\_nice + Δt\_sys\_kernel + Δt\_sys\_idle)**。
 
 代码参见 [double ProcessInfo::GetProcessCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
 
 ###进程物理内存使用量###
 ####Windows####
-结构体[PROCESS_MEMORY_COUNTERS](http://msdn.microsoft.com/en-us/library/windows/desktop/ms684877\(v=vs.85\).aspx)
-的属性WorkingSetSize表示进程占用的物理内存大小，可以通过函数
-[GetProcessMemoryInfo()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683219\(v=vs.85\).aspx)获取。
-其定义如下：
+结构体[PROCESS_MEMORY_COUNTERS](http://msdn.microsoft.com/en-us/library/windows/desktop/ms684877\(v=vs.85\).aspx)的属性WorkingSetSize表示进程占用的物理内存大小，可以通过函数[GetProcessMemoryInfo()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683219\(v=vs.85\).aspx)获取。其定义如下：
 {% highlight cpp %}
 typedef struct _PROCESS_MEMORY_COUNTERS {
   DWORD  cb;
@@ -268,16 +241,10 @@ SigQ:   0/15999
 
 ###进程uptime###
 ####Windows####
-函数[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)
-可以获取进程的创建时间，再调用函数
-[GetSystemTimeAsFileTime](http://msdn.microsoft.com/en-us/library/windows/desktop/ms724397\(v=vs.85\).aspx)
-可以得到系统的当前时间，两者相减就是进程的uptime。
+函数[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)可以获取进程的创建时间，再调用函数[GetSystemTimeAsFileTime](http://msdn.microsoft.com/en-us/library/windows/desktop/ms724397\(v=vs.85\).aspx)可以得到系统的当前时间，两者相减就是进程的uptime。
 
 ####Linux####
-文件/proc/[pid]/stat的第22个参数
-[starttime](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)
-表示进程的起始时间（自系统启动后，单位jiffies），再调用[sysinfo()](http://linux.die.net/man/2/sysinfo)
-可以得到系统的运行时间（自系统启动后，单位s），两者单位统一后相减就是进程的uptime。
+文件/proc/[pid]/stat的第22个参数[starttime](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)表示进程的起始时间（自系统启动后，单位jiffies），再调用[sysinfo()](http://linux.die.net/man/2/sysinfo)可以得到系统的运行时间（自系统启动后，单位s），两者单位统一后相减就是进程的uptime。
 
 > starttime %llu (was %lu before Linux 2.6)  
 > The time in jiffies the process started after system boot.
@@ -285,9 +252,7 @@ SigQ:   0/15999
 代码参见 [double ProcessInfo::GetProcessUptime()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
 
 ###进程内部的线程数###
-文件/proc/[pid]/stat的第20个参数
-[num_threads](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)
-表示进程内部的线程数，直接读取并解析即可。
+文件/proc/[pid]/stat的第20个参数[num_threads](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)表示进程内部的线程数，直接读取并解析即可。
 
 > num_threads %ld  
 > Number of threads in this process (since Linux 2.6).
@@ -344,40 +309,14 @@ unsigned long ProcessInfo::GetProcessThreadCount()
 {% endhighlight %}
 
 ###扩展阅读——System Idle Process###
-之前一直没搞明白Windows空闲进程的含义，于是搬来wiki上对
-[System Idle Process](http://en.wikipedia.org/wiki/System_Idle_Process)的解释，如下：
+之前一直没搞明白Windows空闲进程的含义，于是搬来wiki上对[System Idle Process](http://en.wikipedia.org/wiki/System_Idle_Process)的解释，如下：
 
-> In Windows NT operating systems, the System Idle Process contains one or more
-> kernel threads which run when no other runnable thread can be scheduled on a
-> CPU. For example, there may be no runnable thread in the system, or all
-> runnable threads are already running on a different CPU. In a multiprocessor
-> system, there is one idle thread associated with each CPU.
+> In Windows NT operating systems, the System Idle Process contains one or more kernel threads which run when no other runnable thread can be scheduled on a CPU. For example, there may be no runnable thread in the system, or all runnable threads are already running on a different CPU. In a multiprocessor system, there is one idle thread associated with each CPU.
 
-> The primary purpose of the idle process and its threads is to eliminate what
-> would otherwise be a special case in the scheduler. Without the idle threads,
-> there could be cases when no threads were runnable, or "Ready" in terms of
-> Windows scheduling states. Since the idle threads are always in a Ready state
-> (if not already Running), this can never happen. Thus whenever the scheduler
-> is called due to the current thread leaving the CPU, it can always find
-> another thread to run on that CPU, even if it is only the CPU's idle thread.
+> The primary purpose of the idle process and its threads is to eliminate what would otherwise be a special case in the scheduler. Without the idle threads, there could be cases when no threads were runnable, or "Ready" in terms of Windows scheduling states. Since the idle threads are always in a Ready state (if not already Running), this can never happen. Thus whenever the scheduler is called due to the current thread leaving the CPU, it can always find another thread to run on that CPU, even if it is only the CPU's idle thread.
 
-> The scheduler will never select an idle thread for execution on a given CPU if
-> there are any other threads eligible to run on that CPU. The CPU time
-> attributed to the idle process is therefore indicative of the amount of CPU
-> time that is not needed or wanted by any other processes in the system.
+> The scheduler will never select an idle thread for execution on a given CPU if there are any other threads eligible to run on that CPU. The CPU time attributed to the idle process is therefore indicative of the amount of CPU time that is not needed or wanted by any other processes in the system.
 
-> The scheduler treats the idle threads as special cases in terms of thread
-> scheduling priority. All other threads have a priority in the range 0 through
-> 31, inclusive, with higher priorities always preempting lower. The idle
-> threads do have a priority member in their thread objects but this data is not
-> used to determine when to run them. Instead the scheduler selects the idle
-> thread for a CPU whenever there are no threads in the priority range 0 through
-> 31 that can run on the CPU. It is as if the idle threads each have a priority
-> of negative one. It is not possible to create additional threads that are
-> scheduling peers of the idle threads, even from kernel mode.
+> The scheduler treats the idle threads as special cases in terms of thread scheduling priority. All other threads have a priority in the range 0 through 31, inclusive, with higher priorities always preempting lower. The idle threads do have a priority member in their thread objects but this data is not used to determine when to run them. Instead the scheduler selects the idle thread for a CPU whenever there are no threads in the priority range 0 through 31 that can run on the CPU. It is as if the idle threads each have a priority of negative one. It is not possible to create additional threads that are scheduling peers of the idle threads, even from kernel mode.
 
-意思大致是：空闲进程的主要目的是在没有其它可以运行（或者叫Ready状态）的任
-务时，为系统提供最后的选择。在这种情形下，如果没有空闲进程，处理器就需要做出特殊
-处理。空闲进程正是为了避免这种情形而被定义的。另外，空闲进程内部往往有一个或多个
-内核（kernel）线程，在调度器执行调度时，它的优先级是最低的（可以把它想象成负的优
-先级），只有当没有可调度的任务时，它才会被选中。
+意思大致是：空闲进程的主要目的是在没有其它可以运行（或者叫Ready状态）的任务时，为系统提供最后的选择。在这种情形下，如果没有空闲进程，处理器就需要做出特殊处理。空闲进程正是为了避免这种情形而被定义的。另外，空闲进程内部往往有一个或多个内核（kernel）线程，在调度器执行调度时，它的优先级是最低的（可以把它想象成负的优先级），只有当没有可调度的任务时，它才会被选中。

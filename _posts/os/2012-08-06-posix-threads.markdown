@@ -5,23 +5,14 @@ category: os
 tags: POSIX thread
 ---
 
-[POSIX Threads](http://en.wikipedia.org/wiki/POSIX_Threads)(Pthreads)是一套针对
-线程的POSIX标准，该标准定义了一系列创建和操作线程的API。在很多符合POSIX标准的Unix
-系OS上都有实现，如FreeBSD，NetBSD，OpenBSD，GNU/Linux，Mac OS X和Solaris。
+[POSIX Threads](http://en.wikipedia.org/wiki/POSIX_Threads)(Pthreads)是一套针对线程的POSIX标准，该标准定义了一系列创建和操作线程的API。在很多符合POSIX标准的Unix系OS上都有实现，如FreeBSD，NetBSD，OpenBSD，GNU/Linux，Mac OS X和Solaris。
 
 Pthreads API可以(非正式地)分为四组：
 
-1. **Thread management**：直接操作线程的API，如create，detach，join等。也包括设
-   置(set)和查询(query)线程属性(如joinable，scheduling等)的函数。以`pthread_`和
-   `pthread_attr_`命名；
-2. **Mutexes**：Mutual exclusion的简称，用于处理线程同步问题。互斥量函数提供了对
-   互斥量的create，destroy，lock和unlock操作，同时也包括设置(set)和修改(modify)
-   与互斥量相关的属性。以`pthread_mutex_`和`pthread_mutexattr_`命名；
-3. **Condition variables**：用来通知共享数据的状态信息。包括对条件变量的create，
-   destroy，wait和signal操作，以及设置(set)和查询(query)条件变量属性。以
-   `pthread_cond_`和`pthread_condattr_`命名；
-4. **Synchronization**：操作读写锁和barrier。以`pthread_rwlock_`和
-   `pthread_barrier_`命名。
+1. **Thread management**：直接操作线程的API，如create，detach，join等。也包括设置(set)和查询(query)线程属性(如joinable，scheduling等)的函数。以`pthread_`和`pthread_attr_`命名；
+2. **Mutexes**：Mutual exclusion的简称，用于处理线程同步问题。互斥量函数提供了对互斥量的create，destroy，lock和unlock操作，同时也包括设置(set)和修改(modify)与互斥量相关的属性。以`pthread_mutex_`和`pthread_mutexattr_`命名；
+3. **Condition variables**：用来通知共享数据的状态信息。包括对条件变量的create，destroy，wait和signal操作，以及设置(set)和查询(query)条件变量属性。以`pthread_cond_`和`pthread_condattr_`命名；
+4. **Synchronization**：操作读写锁和barrier。以`pthread_rwlock_`和`pthread_barrier_`命名。
 
 ###Thread management###
 ####线程的创建(create)和终止(terminate)####
@@ -72,13 +63,9 @@ int pthread_attr_init(pthread_attr_t *attr);
 int pthread_attr_destroy(pthread_attr_t *attr);
 {% endhighlight %}
 
-`main()`函数所在线程被称为“**主线程**”，因此即使没有调用`pthread_create()`，当前
-进程也包含一个线程。主线程和进程中其它线程没有任何层次关系，执行顺序完全依赖于系
-统的调度算法。如果没做特殊处理，主线程结束时其它线程也将自动终止。
+`main()`函数所在线程被称为“**主线程**”，因此即使没有调用`pthread_create()`，当前进程也包含一个线程。主线程和进程中其它线程没有任何层次关系，执行顺序完全依赖于系统的调度算法。如果没做特殊处理，主线程结束时其它线程也将自动终止。
 
-有关线程创建最重要的是，在当前线程从函数`pthread_create()`中返回以及新线程被调度
-执行之间不存在同步关系。即，新线程可能在当前线程从`pthread_create()`返回之前就运
-行了，甚至可能已经运行完成。
+当前线程从函数`pthread_create()`中返回以及新线程被调度执行之间不存在同步关系，即新线程可能在当前线程从`pthread_create()`返回之前就运行了，甚至可能已经运行完成。
 
 一般来说，终止线程有以下几种方式：
 
@@ -88,17 +75,12 @@ int pthread_attr_destroy(pthread_attr_t *attr);
 4. 进程调用`exec()`或`exit()`；
 5. `main()`函数先于当前线程结束，并且没有调用`pthread_exit()`。
 
-当线程函数以`return`方式结束时，相当于隐式地(implicit)调用了`pthread_exit()`，两
-者效果一样。此时线程函数的返回值就是线程的退出状态(exit status)，可以调用
-`pthread_join`获取该状态。值得注意的是，**`main()`函数调用`return`相当于调用`exit()`，
-整个进程将会被终止**。为了防止这种情况发生，可以在`main()`函数结束时调用
-`pthread_exit()`，这样主线程会被阻塞并等待所有其它线程结束。
+当线程函数以`return`方式结束时，相当于隐式地(implicit)调用了`pthread_exit()`，两者效果一样。此时线程函数的返回值就是线程的退出状态(exit status)，可以调用`pthread_join`获取该状态。值得注意的是，**`main()`函数调用`return`相当于调用`exit()`，整个进程将会被终止**。为了防止这种情况发生，可以在`main()`函数结束时调用`pthread_exit()`，这样主线程会被阻塞并等待所有其它线程结束。
 
 <pthread_exit和pthread_cancel之间的关系>
 <pthread_exit和return的关系>
 
-线程创建时会被设置以默认的属性(attribute)，其中一部分属性可以通过修改属性对象
-(attribute object)来改变，包括：
+线程创建时会被设置以默认的属性(attribute)，其中一部分属性可以通过修改属性对象(attribute object)来改变，包括：
 
 1. Detached or joinable state
 {% highlight cpp %}
@@ -125,8 +107,7 @@ int pthread_attr_getschedparam(const pthread_attr_t *attr, struct sched_param *p
 int pthread_attr_setscope(pthread_attr_t *attr, int contentionscope);
 int pthread_attr_getscope(const pthread_attr_t *attr, int *contentionscope);
 {% endhighlight %}
-6. Stack size(POSIX标准没有规定线程的堆栈大小，随体系架构的不同而不同，
-   [Linux/x86-32平台上默认为2MB](http://www.kernel.org/doc/man-pages/online/pages/man3/pthread_create.3.html))
+6. Stack size(POSIX标准没有规定线程的堆栈大小，随体系架构的不同而不同，[Linux/x86-32平台上默认为2MB](http://www.kernel.org/doc/man-pages/online/pages/man3/pthread_create.3.html))
 {% highlight cpp %}
 int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize);
 int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *stacksize);
@@ -165,27 +146,17 @@ int pthread_join(pthread_t thread, void **value_ptr);
 int pthread_detach(pthread_t thread);
 {% endhighlight %}
 
-只有被创建为joinable的线程才能被其它线程join。如果目标线程正在运行，调用`pthread_join()`
-会阻塞当前线程，直到目标线程终止；如果目标线程已经终止(未被detach，状态为终止态)
-，当前线程会立刻返回，不被阻塞。目标线程的返回状态(通过`pthread_exit()`指定)可以
-通过`pthread_join()`的第二个参数获取。多个线程同时等待(join)同一个线程的行为是不
-可预知的，必须禁止这种做法。
+只有被创建为joinable的线程才能被其它线程join。如果目标线程正在运行，调用`pthread_join()`会阻塞当前线程，直到目标线程终止；如果目标线程已经终止(未被detach，状态为终止态)，当前线程会立刻返回，不被阻塞。目标线程的返回状态(通过`pthread_exit()`指定)可以通过`pthread_join()`的第二个参数获取。多个线程同时等待(join)同一个线程的行为是不可预知的，必须禁止这种做法。
 
-如果使用`PTHREAD_CREATE_DETACH`属性创建线程，或者调用`pthread_detach()`分离线程，
-则当线程结束时，其资源将被立刻回收。如果终止线程没有被分离，则它将一直处于终止态
-直到被分离(通过`pthread_detach()`)或者被连接(通过`pthread_join`)。
+如果使用`PTHREAD_CREATE_DETACH`属性创建线程，或者调用`pthread_detach()`分离线程，则当线程结束时，其资源将被立刻回收。如果终止线程没有被分离，则它将一直处于终止态直到被分离(通过`pthread_detach()`)或者被连接(通过`pthread_join`)。
 
 > From \<Programming With POSIX Threads\>:
 
-> 分离一个正在运行的线程不会对线程带来任何影响，仅仅是通知系统当该线程结束时，其
-> 所属资源可以被回收。
+> 分离一个正在运行的线程不会对线程带来任何影响，仅仅是通知系统当该线程结束时，其所属资源可以被回收。
 
-> 一个没有被分离的线程终止时会保留其虚拟内存，包括它们的堆栈和其他系统资源。分离
-> 线程意味着通知系统不再需要此线程，允许系统将分配给它的资源回收。
+> 一个没有被分离的线程终止时会保留其虚拟内存，包括它们的堆栈和其他系统资源。分离线程意味着通知系统不再需要此线程，允许系统将分配给它的资源回收。
 
-> 一旦pthread_join获得返回值，终止线程就被pthread_join函数分离，并且可能在
-> pthread_join函数返回前被回收。这意味着，返回值一定不要是与终止线程堆栈相关的堆
-> 栈地址，因为该地址上的值可能在调用线程能够访问之前就被覆盖了。
+> 一旦pthread_join获得返回值，终止线程就被pthread_join函数分离，并且可能在pthread_join函数返回前被回收。这意味着，返回值一定不要是与终止线程堆栈相关的堆栈地址，因为该地址上的值可能在调用线程能够访问之前就被覆盖了。
 
 -----------
 ####其它函数####
@@ -207,14 +178,11 @@ pthread_t pthread_self(void);
 int pthread_equal(pthread_t t1, pthread_t t2);
 {% endhighlight %}
 
-线程ID(包括其它pthread数据类型)都是不透明的(opaque)，因此不能用`==``比较两个线程
-ID是否相等。
+线程ID(包括其它pthread数据类型)都是不透明的(opaque)，因此不能用`==``比较两个线程ID是否相等。
 
 > From \<Programming With POSIX Threads\>:
 
-> Pthread数据类型是不透明的，我们不应该对其实现做任何假设，只能按照标准中描述的
-> 方式使用它们。例如，线程标志符ID可能是整型，或者是浮点型，或者是结构体，任何以
-> 不能兼容所有定义的方式使用线程ID的代码都是错误的。
+> Pthread数据类型是不透明的，我们不应该对其实现做任何假设，只能按照标准中描述的方式使用它们。例如，线程标志符ID可能是整型，或者是浮点型，或者是结构体，任何以不能兼容所有定义的方式使用线程ID的代码都是错误的。
 
 -----------
 ####Sample####
@@ -319,12 +287,9 @@ Main() exits.
 {% endhighlight %}
 
 ###Mutexes###
-线程共享进程地址空间是一把双刃剑，优点是减少线程创建和切换的代价，同时使得线程间
-通信更加方便。缺点也很明显，就是共享数据的同步问题，频繁的同步将带来性能上的损失
-，线程的异常终止还会导致整个进程的终止。
+线程共享进程地址空间是一把双刃剑，优点是减少线程创建和切换的代价，同时使得线程间通信更加方便。缺点也很明显，就是共享数据的同步问题，频繁的同步将带来性能上的损失，线程的异常终止还会导致整个进程的终止。
 
-共享数据的同步问题可以通过互斥量解决，互斥量就像一个“君子协议(gentlemen's
-agreement)”，各个参与线程遵守这个协议，彼此有序地访问共享数据。
+共享数据的同步问题可以通过互斥量解决，互斥量就像一个“君子协议(gentlemen's agreement)”，各个参与线程遵守这个协议，彼此有序地访问共享数据。
 
 ####互斥量的创建与销毁####
 {% highlight cpp %}
@@ -359,9 +324,7 @@ pthread_mutex_init(&mutex, NULL); // pthread_mutex_init(&mutex, &attr);
 pthread_mutex_destroy(&mutex);
 {% endhighlight %}
 
-两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_mutex_destroy()`销毁
-(两者的内存分配策略依赖于具体的`pthreads`实现，可能动态方法会在堆上申请空间——未
-经证实)。
+两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_mutex_destroy()`销毁(两者的内存分配策略依赖于具体的`pthreads`实现，可能动态方法会在堆上申请空间——未经证实)。
 
 ----------
 ####互斥量的加锁(lock)与解锁(unlock)####
@@ -391,15 +354,11 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex);
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
 {% endhighlight %}
 
-多个线程同时调用`pthread_mutex_lock()`对同一个互斥量加锁，只有一个线程可以成功，
-其它线程将被阻塞，被阻塞的线程处于等待状态，不参与CPU调度，只有当该互斥量被解锁
-时，它们才会从等待状态转为就绪状态，重新参与CPU调度，竞争互斥量。
+多个线程同时调用`pthread_mutex_lock()`对同一个互斥量加锁，只有一个线程可以成功，其它线程将被阻塞，被阻塞的线程处于等待状态，不参与CPU调度，只有当该互斥量被解锁时，它们才会从等待状态转为就绪状态，重新参与CPU调度，竞争互斥量。
 
-`pthread_mutex_trylock()`的区别在于它不会阻塞当前线程，无论如何都会立即返回。当
-互斥量已经被锁住，它会返回指示“busy”的错误代码，因此可以避免发生死锁。
+`pthread_mutex_trylock()`的区别在于它不会阻塞当前线程，无论如何都会立即返回。当互斥量已经被锁住，它会返回指示“busy”的错误代码，因此可以避免发生死锁。
 
-使用`pthread_mutex_unlock()`时应当注意，只有锁住互斥量的线程才能解锁该互斥量，否
-则会发生错误。
+使用`pthread_mutex_unlock()`时应当注意，只有锁住互斥量的线程才能解锁该互斥量，否则会发生错误。
 
 ----------
 ####避免死锁####
@@ -407,8 +366,7 @@ http://www2.chrishardick.com:1099/Notes/Computing/C/pthreads/mutexes.html
 
 ----------
 ####Sample####
-下面这个例子中，部分线程调用`pthread_mutex_lock()`，另外一些调用`pthread_mutex_trylock()`，
-同时记录`pthread_mutex_trylock()`执行失败的次数。
+下面这个例子中，部分线程调用`pthread_mutex_lock()`，另外一些调用`pthread_mutex_trylock()`，同时记录`pthread_mutex_trylock()`执行失败的次数。
 
 {% highlight cpp %}
 #include <pthread.h>
@@ -513,9 +471,7 @@ Sum = 100100000.
 Actual sum = 100100000.
 {% endhighlight %}
 ###Condition variables###
-条件变量和互斥量一样，也提供对共享数据的同步，唯一区别是前者有条件地进行同步(条
-件等待->条件满足->被唤醒)。如果不使用条件变量，要实现相同功能，就需要在代码中不
-停地轮询(polling)，直到条件满足，这显然很浪费资源。
+条件变量和互斥量一样，也提供对共享数据的同步，唯一区别是前者有条件地进行同步(条件等待->条件满足->被唤醒)。如果不使用条件变量，要实现相同功能，就需要在代码中不停地轮询(polling)，直到条件满足，这显然很浪费资源。
 
 ####条件变量的创建与销毁####
 {% highlight cpp %}
@@ -582,8 +538,7 @@ int pthread_cond_signal(pthread_cond_t *cond);
 int pthread_cond_broadcast(pthread_cond_t *cond);
 {% endhighlight %}
 
-互斥量与条件变量是**一对多**的关系，即任何条件变量在特定时刻只能与一个互斥量相关
-联，而互斥量则可以同时与多个条件变量关联。
+互斥量与条件变量是**一对多**的关系，即任何条件变量在特定时刻只能与一个互斥量相关联，而互斥量则可以同时与多个条件变量关联。
 
 `pthread_cond_wait()`和`pthread_cond_timedwait()`执行如下操作：
 
@@ -595,8 +550,7 @@ int pthread_cond_broadcast(pthread_cond_t *cond);
 1. 唤醒等待在条件变量上的线程(一个或多个)；
 2. 在当前线程解锁互斥量之后，被唤醒的线程开始竞争互斥量。
 
-无论有没有线程等待在条件变量上，signal或broadcast后条件变量都将被复位。如果此后
-有线程被阻塞在条件变量上，是不会被唤醒的。
+无论有没有线程等待在条件变量上，signal或broadcast后条件变量都将被复位。如果此后有线程被阻塞在条件变量上，是不会被唤醒的。
 
 `pthread_cond_wait()`和`pthread_cond_signal()`的一般用法如下：
 {% highlight cpp %}
@@ -622,9 +576,7 @@ Q3. 为何要在`pthread_cond_signal()`之前lock mutex？
 
 Q1和Q3是因为condition与共享数据有关，lock mutex是为了保护共享数据。
 
-书\<Programming With POSIX Threads\>中对Q2也讨论过，文中给出的解释是存在**被拦截
-的唤醒(intercepted wakeup)**和**假唤醒(spurious wakeup)**。关于**被拦截的唤醒**，
-参见以下多线程代码：
+书\<Programming With POSIX Threads\>中对Q2也讨论过，文中给出的解释是存在**被拦截的唤醒(intercepted wakeup)**和**假唤醒(spurious wakeup)**。关于**被拦截的唤醒**，参见以下多线程代码：
 
 {% highlight text %}
 Thread A                            Thread B                           Thread C
@@ -645,18 +597,14 @@ pthread_cond_wait(&cond, &mutex);
 pthread_mutex_unlock(&mutex);
 {% endhighlight %}
 
-可以看到Thread A从被Thread B唤醒到lock mutex这段时间内，被Thread C**偷去了**CPU。
-当Thread C修改condition并unlock mutex后，Thread A看到的condition已经为`false`了。
+可以看到Thread A从被Thread B唤醒到lock mutex这段时间内，被Thread C**偷去了**CPU。当Thread C修改condition并unlock mutex后，Thread A看到的condition已经为`false`了。
 
 正如\<Programming With POSIX Threads\>所说：
-> 当线程醒来时，再次测试谓词同样重要。应该总是在循环中等待条件变量，来避免程序错
-> 误、多处理器竞争和假唤醒。
+> 当线程醒来时，再次测试谓词同样重要。应该总是在循环中等待条件变量，来避免程序错误、多处理器竞争和假唤醒。
 
 ----------
 ####Sample####
-下面这个例子是典型的[生产者-消费者问题](http://en.wikipedia.org/wiki/Producer-consumer_problem)，
-若干个生产者往`buffer`里写内容，若干个消费者从`buffer`中取内容，通过`pthread_cond_broadcast()`
-唤醒阻塞的生产者/消费者线程。
+下面这个例子是典型的[生产者-消费者问题](http://en.wikipedia.org/wiki/Producer-consumer_problem)，若干个生产者往`buffer`里写内容，若干个消费者从`buffer`中取内容，通过`pthread_cond_broadcast()`唤醒阻塞的生产者/消费者线程。
 {% highlight cpp %}
 #include <pthread.h>
 #include <stdio.h>
@@ -798,13 +746,9 @@ Producer #9 produces task 19.
 ###Synchronization###
 
 
-共享进程地址空间就像一把双刃剑，好处是减少线程创建和切换的代价，并且使得线程间通
-信更加方便。坏处也很明显，就是共享数据的同步问题，频繁的同步将带来性能上的损失，
-同时线程异常终止会导致整个进程的终止。
+共享进程地址空间就像一把双刃剑，好处是减少线程创建和切换的代价，并且使得线程间通信更加方便。坏处也很明显，就是共享数据的同步问题，频繁的同步将带来性能上的损失，同时线程异常终止会导致整个进程的终止。
 
-“Pthread数据类型是不透明的，我们不应该对其实现做任何假设，只能按照标准中描述的方
-式使用它们。例如，线程标志符ID可能是整型，或者是浮点型，或者是结构体，任何以不能
-兼容所有定义的方式使用线程ID的代码都是错误的。”——为了可移植
+“Pthread数据类型是不透明的，我们不应该对其实现做任何假设，只能按照标准中描述的方式使用它们。例如，线程标志符ID可能是整型，或者是浮点型，或者是结构体，任何以不能兼容所有定义的方式使用线程ID的代码都是错误的。”——为了可移植
 
 函数声明：参数，返回值，发生错误时，特殊情况下
 返回值：正常——0+额外的输出参数指向存有“有用结果”的地址，错误——返回<errno.h>头文
