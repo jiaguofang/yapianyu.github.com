@@ -604,7 +604,13 @@ pthread_mutex_unlock(&mutex);
 
 ----------
 ####Sample####
+<<<<<<< HEAD
 下面这个例子是典型的[生产者-消费者问题](http://en.wikipedia.org/wiki/Producer-consumer_problem)，若干个生产者往`buffer`里写内容，若干个消费者从`buffer`中取内容，通过`pthread_cond_broadcast()`唤醒阻塞的生产者/消费者线程。
+=======
+下面这个例子是[生产者-消费者问题](http://en.wikipedia.org/wiki/Producer-consumer_problem)的Pthreads解法，
+若干个生产者往`buffer`里写内容，若干个消费者从`buffer`中取内容，通过`pthread_cond_broadcast()`
+唤醒阻塞的生产者/消费者线程。
+>>>>>>> 2d8cac8891205ff8d3514c3b4d3939f89a318611
 {% highlight cpp %}
 #include <pthread.h>
 #include <stdio.h>
