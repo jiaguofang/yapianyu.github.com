@@ -574,9 +574,9 @@ pthread_mutex_unlock(&mutex);
 
 这里有几个问题：
 
-Q1. 为何要在`pthread_cond_wait()`之前lock mutex？  
-Q2. 为何要在`pthread_cond_wait()`之前判断condition是否为`false`，还要放在`while`中？  
-Q3. 为何要在`pthread_cond_signal()`之前lock mutex？
+Q1. [为何要在`pthread_cond_wait()`之前lock mutex？](http://stackoverflow.com/questions/6312342/pthread-cond-wait-and-mutex-requirement/6312416#6312416)  
+Q2. [为何要在`pthread_cond_wait()`之前判断condition是否为`false`，还要放在`while`中？](http://stackoverflow.com/questions/1136371/pthread-and-wait-conditions/4821672#4821672)  
+Q3. [为何要在`pthread_cond_signal()`之前lock mutex？](http://stackoverflow.com/questions/4544234/calling-pthread-cond-signal-without-locking-mutex/4567919#4567919)
 
 Q1和Q3是因为condition与共享数据有关，lock mutex是为了保护共享数据。
 
@@ -819,7 +819,3 @@ pthread_cond_broadcast
 
 https://computing.llnl.gov/tutorials/pthreads/
 http://www.ibm.com/developerworks/linux/library/l-posix1/index.html
-
-[Stack Overflow: pthread_cond_wait and mutex requirement](http://stackoverflow.com/a/6312416/1037167)  
-[Stack Overflow: Calling pthread_cond_signal without locking mutex](http://stackoverflow.com/a/4567919/1037167)  
-[Stack Overflow: Pthread and wait conditions](http://stackoverflow.com/a/4821672/1037167)
