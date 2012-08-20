@@ -11,14 +11,14 @@ Pthreads API可以(非正式地)分为四组：
 
 1. **Thread management**：直接操作线程的API，如create，detach，join等。也包括设置(set)和查询(query)线程属性(如joinable，scheduling等)的函数。以`pthread_`和`pthread_attr_`命名；
 2. **Mutexes**：Mutual exclusion的简称，用于处理线程同步问题。互斥量函数提供了对互斥量的create，destroy，lock和unlock操作，同时也包括设置(set)和修改(modify)与互斥量相关的属性。以`pthread_mutex_`和`pthread_mutexattr_`命名；
-3. **Condition variables**：用来通知共享数据的状态信息。包括对条件变量的create，destroy，wait和signal操作，以及设置(set)和查询(query)条件变量属性。以`pthread_cond_`和`pthread_condattr_`命名；
+3. **Condition variables**：用来通知共享数据的状态信息。包括对条件变量的create，destroy，wait，signal和broadcast操作，以及设置(set)和查询(query)条件变量属性。以`pthread_cond_`和`pthread_condattr_`命名；
 4. **Synchronization**：操作读写锁和barrier。以`pthread_rwlock_`和`pthread_barrier_`命名。
 
 ###Thread management###
 ####线程的创建(create)和终止(terminate)####
 {% highlight cpp %}
 /**
- * 创建一个线程
+ * 创建线程
  *
  * @param thread 线程ID
  * @param attr 属性对象，用于设置线程属性，若attr为NULL，将以默认属性创建线程
@@ -63,7 +63,7 @@ int pthread_attr_init(pthread_attr_t *attr);
 int pthread_attr_destroy(pthread_attr_t *attr);
 {% endhighlight %}
 
-`main()`函数所在线程被称为“**主线程**”，因此即使没有调用`pthread_create()`，当前进程也包含一个线程。主线程和进程中其它线程没有任何层次关系，执行顺序完全依赖于系统的调度算法。如果没做特殊处理，主线程结束时其它线程也将自动终止。
+`main()`函数所在线程被称为“**主线程**”，因此进程至少包含一个线程。主线程和进程中其它线程没有任何层次关系，执行顺序完全依赖于系统的调度算法。如果没做特殊处理，主线程结束时其它线程将自动终止。
 
 当前线程从函数`pthread_create()`中返回以及新线程被调度执行之间不存在同步关系，即新线程可能在当前线程从`pthread_create()`返回之前就运行了，甚至可能已经运行完成。
 
@@ -75,7 +75,7 @@ int pthread_attr_destroy(pthread_attr_t *attr);
 4. 进程调用`exec()`或`exit()`；
 5. `main()`函数先于当前线程结束，并且没有调用`pthread_exit()`。
 
-当线程函数以`return`方式结束时，相当于隐式地(implicit)调用了`pthread_exit()`，两者效果一样。此时线程函数的返回值就是线程的退出状态(exit status)，可以调用`pthread_join`获取该状态。值得注意的是，**`main()`函数调用`return`相当于调用`exit()`，整个进程将会被终止**。为了防止这种情况发生，可以在`main()`函数结束时调用`pthread_exit()`，这样主线程会被阻塞并等待所有其它线程结束。
+当线程函数以`return`方式结束时，相当于隐式地(implicitly)调用了`pthread_exit()`，两者效果一样。此时线程函数的返回值就是线程的退出状态(exit status)，可以调用`pthread_join`获取该状态。值得注意的是，**`main()`函数调用`return`相当于调用`exit()`，整个进程将会被终止**。为了防止这种情况发生，可以在`main()`函数结束时调用`pthread_exit()`，这样主线程会被阻塞直到所有其它线程结束。
 
 <pthread_exit和pthread_cancel之间的关系>
 <pthread_exit和return的关系>
@@ -107,7 +107,8 @@ int pthread_attr_getschedparam(const pthread_attr_t *attr, struct sched_param *p
 int pthread_attr_setscope(pthread_attr_t *attr, int contentionscope);
 int pthread_attr_getscope(const pthread_attr_t *attr, int *contentionscope);
 {% endhighlight %}
-6. Stack size(POSIX标准没有规定线程的堆栈大小，随体系架构的不同而不同，[Linux/x86-32平台上默认为2MB](http://www.kernel.org/doc/man-pages/online/pages/man3/pthread_create.3.html))
+6. Stack size  
+POSIX标准没有规定线程的堆栈大小，随体系架构的不同而不同，[Linux/x86-32平台上默认为2MB](http://www.kernel.org/doc/man-pages/online/pages/man3/pthread_create.3.html)。
 {% highlight cpp %}
 int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize);
 int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *stacksize);
@@ -146,7 +147,7 @@ int pthread_join(pthread_t thread, void **value_ptr);
 int pthread_detach(pthread_t thread);
 {% endhighlight %}
 
-只有被创建为joinable的线程才能被其它线程join。如果目标线程正在运行，调用`pthread_join()`会阻塞当前线程，直到目标线程终止；如果目标线程已经终止(未被detach，状态为终止态)，当前线程会立刻返回，不被阻塞。目标线程的返回状态(通过`pthread_exit()`指定)可以通过`pthread_join()`的第二个参数获取。多个线程同时等待(join)同一个线程的行为是不可预知的，必须禁止这种做法。
+只有被创建为joinable的线程才能被其它线程join。如果目标线程正在运行，调用`pthread_join()`会阻塞当前线程，直到目标线程终止；如果目标线程已经终止(未被detach，状态为终止态)，当前线程立刻返回，不被阻塞。目标线程的返回状态由`pthread_exit()`指定，通过`pthread_join()`的第二个参数获取。多个线程同时等待(join)同一个线程的行为是不可预知的，必须禁止这种做法。
 
 如果使用`PTHREAD_CREATE_DETACH`属性创建线程，或者调用`pthread_detach()`分离线程，则当线程结束时，其资源将被立刻回收。如果终止线程没有被分离，则它将一直处于终止态直到被分离(通过`pthread_detach()`)或者被连接(通过`pthread_join`)。
 
@@ -178,7 +179,7 @@ pthread_t pthread_self(void);
 int pthread_equal(pthread_t t1, pthread_t t2);
 {% endhighlight %}
 
-线程ID(包括其它pthread数据类型)都是不透明的(opaque)，因此不能用`==``比较两个线程ID是否相等。
+线程ID(包括其它Pthread数据类型)都是不透明的(opaque)，因此不能用`==`比较两个线程ID是否相等。
 
 > From \<Programming With POSIX Threads\>:
 
@@ -287,7 +288,10 @@ Main() exits.
 {% endhighlight %}
 
 ###Mutexes###
-线程共享进程地址空间是一把双刃剑，优点是减少线程创建和切换的代价，同时使得线程间通信更加方便。缺点也很明显，就是共享数据的同步问题，频繁的同步将带来性能上的损失，线程的异常终止还会导致整个进程的终止。
+线程共享进程地址空间是一把双刃剑：  
+
+* 优点：减少线程创建和切换的代价，使得线程间通信更加方便；
+* 缺点：共享数据存在同步问题，频繁的同步将带来性能上的损失，线程的异常终止还会导致整个进程的终止。
 
 共享数据的同步问题可以通过互斥量解决，互斥量就像一个“君子协议(gentlemen's agreement)”，各个参与线程遵守这个协议，彼此有序地访问共享数据。
 
@@ -354,9 +358,9 @@ int pthread_mutex_trylock(pthread_mutex_t *mutex);
 int pthread_mutex_unlock(pthread_mutex_t *mutex);
 {% endhighlight %}
 
-多个线程同时调用`pthread_mutex_lock()`对同一个互斥量加锁，只有一个线程可以成功，其它线程将被阻塞，被阻塞的线程处于等待状态，不参与CPU调度，只有当该互斥量被解锁时，它们才会从等待状态转为就绪状态，重新参与CPU调度，竞争互斥量。
+多个线程同时调用`pthread_mutex_lock()`对同一个互斥量加锁，只有一个线程可以成功，其它线程将被阻塞，被阻塞的线程处于等待状态，不参与CPU调度。只有当该互斥量被解锁时，它们才会从等待状态转为就绪状态，重新参与CPU调度，竞争互斥量。
 
-`pthread_mutex_trylock()`的区别在于它不会阻塞当前线程，无论如何都会立即返回。当互斥量已经被锁住，它会返回指示“busy”的错误代码，因此可以避免发生死锁。
+`pthread_mutex_trylock()`不会阻塞当前线程，调用后立即返回。当互斥量已经被锁住，它会返回`EBUSY`错误代码，因此可以避免发生死锁。
 
 使用`pthread_mutex_unlock()`时应当注意，只有锁住互斥量的线程才能解锁该互斥量，否则会发生错误。
 
@@ -366,7 +370,7 @@ http://www2.chrishardick.com:1099/Notes/Computing/C/pthreads/mutexes.html
 
 ----------
 ####Sample####
-下面这个例子中，部分线程调用`pthread_mutex_lock()`，另外一些调用`pthread_mutex_trylock()`，同时记录`pthread_mutex_trylock()`执行失败的次数。
+下面这个例子中，若干线程调用`pthread_mutex_lock()`，若干线程调用`pthread_mutex_trylock()`，同时记录`pthread_mutex_trylock()`执行失败的次数。
 
 {% highlight cpp %}
 #include <pthread.h>
@@ -471,7 +475,7 @@ Sum = 100100000.
 Actual sum = 100100000.
 {% endhighlight %}
 ###Condition variables###
-条件变量和互斥量一样，也提供对共享数据的同步，唯一区别是前者有条件地进行同步(条件等待->条件满足->被唤醒)。如果不使用条件变量，要实现相同功能，就需要在代码中不停地轮询(polling)，直到条件满足，这显然很浪费资源。
+条件变量和互斥量一样，也提供对共享数据的同步，唯一区别是前者有条件地进行同步(条件等待->条件满足->发信号->被唤醒)。如果不使用条件变量，要实现相同功能，需要在代码中不停地轮询(polling)，直到条件满足，这显然很浪费CPU。
 
 ####条件变量的创建与销毁####
 {% highlight cpp %}
