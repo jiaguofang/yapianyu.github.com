@@ -63,7 +63,7 @@ int pthread_attr_init(pthread_attr_t *attr);
 int pthread_attr_destroy(pthread_attr_t *attr);
 {% endhighlight %}
 
-`main()`函数所在线程被称为“**主线程**”，因此进程至少包含一个线程。主线程和进程中其它线程没有任何层次关系，执行顺序完全依赖于系统的调度算法。如果没做特殊处理，主线程结束时其它线程将自动终止。
+`main()`函数所在线程被称为**主线程**，因此进程至少包含一个线程。主线程和进程中其它线程没有任何层次关系，执行顺序完全依赖于系统的调度算法。如果没做特殊处理，主线程结束时其它线程将自动终止。
 
 当前线程从函数`pthread_create()`中返回以及新线程被调度执行之间不存在同步关系，即新线程可能在当前线程从`pthread_create()`返回之前就运行了，甚至可能已经运行完成。
 
@@ -77,8 +77,7 @@ int pthread_attr_destroy(pthread_attr_t *attr);
 
 当线程函数以`return`方式结束时，相当于隐式地(implicitly)调用了`pthread_exit()`，两者效果一样。此时线程函数的返回值就是线程的退出状态(exit status)，可以调用`pthread_join`获取该状态。值得注意的是，**`main()`函数调用`return`相当于调用`exit()`，整个进程将会被终止**。为了防止这种情况发生，可以在`main()`函数结束时调用`pthread_exit()`，这样主线程会被阻塞直到所有其它线程结束。
 
-<pthread_exit和pthread_cancel之间的关系>
-<pthread_exit和return的关系>
+<pthread_cancel>
 
 线程创建时会被设置以默认的属性(attribute)，其中一部分属性可以通过修改属性对象(attribute object)来改变，包括：
 
@@ -124,8 +123,6 @@ int pthread_attr_getguardsize(const pthread_attr_t *attr, size_t *guardsize);
 int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize);
 {% endhighlight %}
 
-<pthread_attr_destroy感觉没多大用处>
-
 ----------
 ####线程的等待(join)和分离(detach)####
 {% highlight cpp %}
@@ -147,7 +144,35 @@ int pthread_join(pthread_t thread, void **value_ptr);
 int pthread_detach(pthread_t thread);
 {% endhighlight %}
 
-只有被创建为joinable的线程才能被其它线程join。如果目标线程正在运行，调用`pthread_join()`会阻塞当前线程，直到目标线程终止；如果目标线程已经终止(未被detach，状态为终止态)，当前线程立刻返回，不被阻塞。目标线程的返回状态由`pthread_exit()`指定，通过`pthread_join()`的第二个参数获取。多个线程同时等待(join)同一个线程的行为是不可预知的，必须禁止这种做法。
+只有被创建为joinable的线程才能被其它线程join。如果目标线程正在运行，调用`pthread_join()`会阻塞当前线程，直到目标线程终止；如果目标线程已经终止(未被detach，状态为终止态)，当前线程立刻返回，不被阻塞。多个线程同时等待(join)同一个线程的行为是不可预知的，必须禁止这种做法。
+
+目标线程的返回状态由`pthread_exit()`指定，通过`pthread_join()`的第二个参数获取。但是[为什么`pthread_exit()`的参数是指针，而`pthread_join()`的参数却是指向指针的指针？](http://stackoverflow.com/questions/8513894/pthread-join-and-pthread-exit/8515532#8515532)下面这个例子可以帮助我们理解：
+{% highlight cpp %}
+#include <stdio.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
+
+const char* a = "Hello World!";
+
+void* thread_function(void *)
+{
+    pthread_exit((void*) a);
+}
+int main()
+{
+    char* b;
+    pthread_t thread_id;
+
+    pthread_create(&thread_id, NULL, &thread_function, NULL);
+    pthread_join(thread_id, (void**) &b); // 为了拿到a的值，b必须把自己的地址传进去
+    printf("%s", b);
+}
+{% endhighlight %}
+{% highlight text %}
+yapianyu@yapianyu-pc:~/Desktop$ ./a.out
+Hello World!
+{% endhighlight %}
 
 如果使用`PTHREAD_CREATE_DETACH`属性创建线程，或者调用`pthread_detach()`分离线程，则当线程结束时，其资源将被立刻回收。如果终止线程没有被分离，则它将一直处于终止态直到被分离(通过`pthread_detach()`)或者被连接(通过`pthread_join`)。
 
