@@ -14,8 +14,26 @@ Pthreads API可以(非正式地)分为四组：
 3. **Condition variables**：用来通知共享数据的状态信息。包括对条件变量的create，destroy，wait，signal和broadcast操作，以及设置(set)和查询(query)条件变量属性。以`pthread_cond_`和`pthread_condattr_`命名；
 4. **Synchronization**：操作读写锁和barrier。以`pthread_rwlock_`和`pthread_barrier_`命名。
 
-###Thread management###
-####线程的创建(create)和终止(terminate)####
+本文内容如下：
+
+* [Thread management](#th_mgmt)
+  * [线程的创建(create)和终止(terminate)](#th_create_terminate)
+  * [线程的等待(join)和分离(detach)](#th_join_detach)
+  * [其它函数](#th_mgmt_other_function)
+  * [Sample](#th_mgmt_sample)
+* [Mutexes](#mutex)
+  * [互斥量的创建与销毁](#mutex_create_destroy)
+  * [互斥量的加锁(lock)与解锁(unlock)](#mutex_lock_unlock)
+  * [避免死锁](#mutex_avoid_deadlock)
+  * [Sample](#mutex_sample)
+* [Condition variables](#cond_var)
+  * [条件变量的创建与销毁](#cond_var_create_destroy)
+  * [条件变量的等待(wait)和发信号(signal)](#cond_var_wait_signal)
+  * [Sample](#cond_var_sample)
+* [Synchronization](#synch)
+
+###<a id="th_mgmt"></a>Thread management###
+####<a id="th_create_terminate"></a>线程的创建(create)和终止(terminate)####
 {% highlight cpp %}
 /**
  * 创建线程
@@ -124,7 +142,7 @@ int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize);
 {% endhighlight %}
 
 ----------
-####线程的等待(join)和分离(detach)####
+####<a id="th_join_detach"></a>线程的等待(join)和分离(detach)####
 {% highlight cpp %}
 /**
  * 阻塞调用线程直到目标线程终止
@@ -185,7 +203,7 @@ Hello World!
 > 一旦pthread_join获得返回值，终止线程就被pthread_join函数分离，并且可能在pthread_join函数返回前被回收。这意味着，返回值一定不要是与终止线程堆栈相关的堆栈地址，因为该地址上的值可能在调用线程能够访问之前就被覆盖了。
 
 -----------
-####其它函数####
+####<a id="th_mgmt_other_function"></a>其它函数####
 {% highlight cpp %}
 /**
  * 获得调用线程的ID
@@ -211,7 +229,7 @@ int pthread_equal(pthread_t t1, pthread_t t2);
 > Pthread数据类型是不透明的，我们不应该对其实现做任何假设，只能按照标准中描述的方式使用它们。例如，线程标志符ID可能是整型，或者是浮点型，或者是结构体，任何以不能兼容所有定义的方式使用线程ID的代码都是错误的。
 
 -----------
-####Sample####
+####<a id="th_mgmt_sample"></a>Sample####
 {% highlight cpp %}
 #include <pthread.h>
 #include <stdio.h>
@@ -312,7 +330,7 @@ Return code from thread is 11.
 Main() exits.
 {% endhighlight %}
 
-###Mutexes###
+###<a id="mutex"></a>Mutexes###
 线程共享进程地址空间是一把双刃剑：  
 
 * 优点：减少线程创建和切换的代价，使得线程间通信更加方便；
@@ -320,7 +338,7 @@ Main() exits.
 
 共享数据的同步问题可以通过互斥量解决，互斥量就像一个“君子协议(gentlemen's agreement)”，各个参与线程遵守这个协议，彼此有序地访问共享数据。
 
-####互斥量的创建与销毁####
+####<a id="mutex_create_destroy"></a>互斥量的创建与销毁####
 {% highlight cpp %}
 /**
  * 用参数attr初始化互斥量，若attr为NULL，将以默认值初始化mutex
@@ -356,7 +374,7 @@ pthread_mutex_destroy(&mutex);
 两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_mutex_destroy()`销毁(两者的内存分配策略依赖于具体的`pthreads`实现，可能动态方法会在堆上申请空间——未经证实)。
 
 ----------
-####互斥量的加锁(lock)与解锁(unlock)####
+####<a id="mutex_lock_unlock"></a>互斥量的加锁(lock)与解锁(unlock)####
 {% highlight cpp %}
 /**
  * 加锁互斥量，如果互斥量已经被锁住，阻塞当前线程直到互斥量被解锁
@@ -390,11 +408,11 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex);
 使用`pthread_mutex_unlock()`时应当注意，只有锁住互斥量的线程才能解锁该互斥量，否则会发生错误。
 
 ----------
-####避免死锁####
+####<a id="mutex_avoid_deadlock"></a>避免死锁####
 http://www2.chrishardick.com:1099/Notes/Computing/C/pthreads/mutexes.html
 
 ----------
-####Sample####
+####<a id="mutex_sample"></a>Sample####
 下面这个例子中，若干线程调用`pthread_mutex_lock()`，若干线程调用`pthread_mutex_trylock()`，同时记录`pthread_mutex_trylock()`执行失败的次数。
 
 {% highlight cpp %}
@@ -499,10 +517,10 @@ Total times pthread_mutex_trylock() failed = 2193647.
 Sum = 100100000.
 Actual sum = 100100000.
 {% endhighlight %}
-###Condition variables###
+###<a id="cond_var"></a>Condition variables###
 条件变量和互斥量一样，也提供对共享数据的同步，唯一区别是前者有条件地进行同步(条件等待->条件满足->发信号->被唤醒)。如果不使用条件变量，要实现相同功能，需要在代码中不停地轮询(polling)，直到条件满足，这显然很浪费CPU。
 
-####条件变量的创建与销毁####
+####<a id="cond_var_create_destroy"></a>条件变量的创建与销毁####
 {% highlight cpp %}
 /**
  * 用参数attr初始化条件变量，若attr为NULL，将以默认值初始化cond
@@ -537,7 +555,7 @@ pthread_cond_destroy(&cond);
 两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_cond_destroy()`销毁。
 
 ----------
-####条件变量的等待(wait)和发信号(signal)####
+####<a id="cond_var_wait_signal"></a>条件变量的等待(wait)和发信号(signal)####
 {% highlight cpp %}
 /**
  * 在条件变量cond上阻塞线程
@@ -632,7 +650,7 @@ pthread_mutex_unlock(&mutex);
 > 当线程醒来时，再次测试谓词同样重要。应该总是在循环中等待条件变量，来避免程序错误、多处理器竞争和假唤醒。
 
 ----------
-####Sample####
+####<a id="cond_var_sample"></a>Sample####
 下面这个例子是[生产者-消费者问题](http://en.wikipedia.org/wiki/Producer-consumer_problem)的Pthreads解法，若干个生产者往`buffer`里写内容，若干个消费者从`buffer`中取内容，通过`pthread_cond_broadcast()`唤醒阻塞的生产者/消费者线程。
 {% highlight cpp %}
 #include <pthread.h>
@@ -772,7 +790,7 @@ Producer #7 produces task 18.
 Producer #9 produces task 19.
                                 Consumer #3 consumes task 19.
 {% endhighlight %}
-###Synchronization###
+###<a id="synch"></a>Synchronization###
 
 References:  
 [POSIX Threads Programming](https://computing.llnl.gov/tutorials/pthreads/)  
