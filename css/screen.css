@@ -199,8 +199,8 @@ strong {
 #post .content {
 	width: 850px;
 	margin: 0 auto;
-	-moz-box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
-	-webkit-box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
+	/*-moz-box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);
+	-webkit-box-shadow: 0 0 7px rgba(0, 0, 0, 0.5);*/
 	padding: 50px;
 }
 
@@ -268,14 +268,14 @@ strong {
 }
 
 #post aside {
-  border-top: 1px solid #281F0D;
-  background-color: #281F0D;
-  color: #CBC7BB;
+  /*border-top: 1px solid #281F0D;*/
+  background-color: #666;
+  /*color: #CBC7BB;*/
 }
 
 #post aside .content {
-  background-color: #3B3127;
-  padding: 50px;
+  background-color: #F4F4F4;
+  padding: 20px 50px 20px 50px;
   width: 850px; 
 }
 
