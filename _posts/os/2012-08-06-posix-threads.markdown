@@ -14,26 +14,8 @@ Pthreads API可以(非正式地)分为四组：
 3. **Condition variables**：用来通知共享数据的状态信息。包括对条件变量的create，destroy，wait，signal和broadcast操作，以及设置(set)和查询(query)条件变量属性。以`pthread_cond_`和`pthread_condattr_`命名；
 4. **Synchronization**：操作读写锁和barrier。以`pthread_rwlock_`和`pthread_barrier_`命名。
 
-本文内容如下：
-
-* [Thread management](#th_mgmt)
-  * [线程的创建(create)和终止(terminate)](#th_create_terminate)
-  * [线程的等待(join)和分离(detach)](#th_join_detach)
-  * [其它函数](#th_mgmt_other_function)
-  * [Sample](#th_mgmt_sample)
-* [Mutexes](#mutex)
-  * [互斥量的创建与销毁](#mutex_create_destroy)
-  * [互斥量的加锁(lock)与解锁(unlock)](#mutex_lock_unlock)
-  * [避免死锁](#mutex_avoid_deadlock)
-  * [Sample](#mutex_sample)
-* [Condition variables](#cond_var)
-  * [条件变量的创建与销毁](#cond_var_create_destroy)
-  * [条件变量的等待(wait)和发信号(signal)](#cond_var_wait_signal)
-  * [Sample](#cond_var_sample)
-* [Synchronization](#synch)
-
-###<a id="th_mgmt"></a>Thread management###
-####<a id="th_create_terminate"></a>线程的创建(create)和终止(terminate)####
+##Thread management##
+###线程的创建(create)和终止(terminate)###
 {% highlight cpp %}
 /**
  * 创建线程
@@ -95,54 +77,54 @@ int pthread_attr_destroy(pthread_attr_t *attr);
 
 当线程函数以`return`方式结束时，相当于隐式地(implicitly)调用了`pthread_exit()`，两者效果一样。此时线程函数的返回值就是线程的退出状态(exit status)，可以调用`pthread_join`获取该状态。值得注意的是，**`main()`函数调用`return`相当于调用`exit()`，整个进程将会被终止**。为了防止这种情况发生，可以在`main()`函数结束时调用`pthread_exit()`，这样主线程会被阻塞直到所有其它线程结束。
 
-<pthread_cancel>
+"pthread_cancel"
 
 线程创建时会被设置以默认的属性(attribute)，其中一部分属性可以通过修改属性对象(attribute object)来改变，包括：
 
-1. Detached or joinable state
+* Detached or joinable state
 {% highlight cpp %}
 int pthread_attr_setdetachstate(pthread_attr_t *attr, int detachstate);
 int pthread_attr_getdetachstate(const pthread_attr_t *attr, int *detachstate);
 {% endhighlight %}
-2. Scheduling inheritance
+* Scheduling inheritance
 {% highlight cpp %}
 int pthread_attr_setinheritsched(pthread_attr_t *attr, int inheritsched);
 int pthread_attr_getinheritsched(const pthread_attr_t *attr, int *inheritsched);
 {% endhighlight %}
-3. Scheduling policy
+* Scheduling policy
 {% highlight cpp %}
 int pthread_attr_setschedpolicy(pthread_attr_t *attr, int policy);
 int pthread_attr_getschedpolicy(const pthread_attr_t *attr, int *policy);
 {% endhighlight %}
-4. Scheduling parameters
+* Scheduling parameters
 {% highlight cpp %}
 int pthread_attr_setschedparam(pthread_attr_t *attr, const struct sched_param *param);
 int pthread_attr_getschedparam(const pthread_attr_t *attr, struct sched_param *param);
 {% endhighlight %}
-5. Scheduling contention scope
+* Scheduling contention scope
 {% highlight cpp %}
 int pthread_attr_setscope(pthread_attr_t *attr, int contentionscope);
 int pthread_attr_getscope(const pthread_attr_t *attr, int *contentionscope);
 {% endhighlight %}
-6. Stack size  
+* Stack size  
 POSIX标准没有规定线程的堆栈大小，随体系架构的不同而不同，[Linux/x86-32平台上默认为2MB](http://www.kernel.org/doc/man-pages/online/pages/man3/pthread_create.3.html)。
 {% highlight cpp %}
 int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize);
 int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *stacksize);
 {% endhighlight %}
-7. Stack address
+* Stack address
 {% highlight cpp %}
 int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stackaddr);
 int pthread_attr_getstackaddr(const pthread_attr_t *attr, void **stackaddr);
 {% endhighlight %}
-8. Stack guard (overflow) size
+* Stack guard (overflow) size
 {% highlight cpp %}
 int pthread_attr_getguardsize(const pthread_attr_t *attr, size_t *guardsize);
 int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize);
 {% endhighlight %}
 
 ----------
-####<a id="th_join_detach"></a>线程的等待(join)和分离(detach)####
+###线程的等待(join)和分离(detach)###
 {% highlight cpp %}
 /**
  * 阻塞调用线程直到目标线程终止
@@ -194,7 +176,7 @@ Hello World!
 
 如果使用`PTHREAD_CREATE_DETACH`属性创建线程，或者调用`pthread_detach()`分离线程，则当线程结束时，其资源将被立刻回收。如果终止线程没有被分离，则它将一直处于终止态直到被分离(通过`pthread_detach()`)或者被连接(通过`pthread_join`)。
 
-> From \<Programming With POSIX Threads\>:
+> From 《Programming With POSIX Threads》:
 
 > 分离一个正在运行的线程不会对线程带来任何影响，仅仅是通知系统当该线程结束时，其所属资源可以被回收。
 
@@ -203,7 +185,7 @@ Hello World!
 > 一旦pthread_join获得返回值，终止线程就被pthread_join函数分离，并且可能在pthread_join函数返回前被回收。这意味着，返回值一定不要是与终止线程堆栈相关的堆栈地址，因为该地址上的值可能在调用线程能够访问之前就被覆盖了。
 
 -----------
-####<a id="th_mgmt_other_function"></a>其它函数####
+###其它函数###
 {% highlight cpp %}
 /**
  * 获得调用线程的ID
@@ -224,12 +206,12 @@ int pthread_equal(pthread_t t1, pthread_t t2);
 
 线程ID(包括其它Pthread数据类型)都是不透明的(opaque)，因此不能用`==`比较两个线程ID是否相等。
 
-> From \<Programming With POSIX Threads\>:
+> From 《Programming With POSIX Threads》:
 
 > Pthread数据类型是不透明的，我们不应该对其实现做任何假设，只能按照标准中描述的方式使用它们。例如，线程标志符ID可能是整型，或者是浮点型，或者是结构体，任何以不能兼容所有定义的方式使用线程ID的代码都是错误的。
 
 -----------
-####<a id="th_mgmt_sample"></a>Sample####
+###Sample###
 {% highlight cpp %}
 #include <pthread.h>
 #include <stdio.h>
@@ -330,7 +312,7 @@ Return code from thread is 11.
 Main() exits.
 {% endhighlight %}
 
-###<a id="mutex"></a>Mutexes###
+##Mutexes##
 线程共享进程地址空间是一把双刃剑：  
 
 * 优点：减少线程创建和切换的代价，使得线程间通信更加方便；
@@ -338,7 +320,7 @@ Main() exits.
 
 共享数据的同步问题可以通过互斥量解决，互斥量就像一个“君子协议(gentlemen's agreement)”，各个参与线程遵守这个协议，彼此有序地访问共享数据。
 
-####<a id="mutex_create_destroy"></a>互斥量的创建与销毁####
+###互斥量的创建与销毁###
 {% highlight cpp %}
 /**
  * 用参数attr初始化互斥量，若attr为NULL，将以默认值初始化mutex
@@ -360,11 +342,11 @@ int pthread_mutex_destroy(pthread_mutex_t *mutex);
 
 初始化互斥量的方式有两种：
 
-1. 静态初始化
+* 静态初始化
 {% highlight cpp %}
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 {% endhighlight %}
-2. 动态初始化
+* 动态初始化
 {% highlight cpp %}
 pthread_mutex_t mutex;
 pthread_mutex_init(&mutex, NULL); // pthread_mutex_init(&mutex, &attr);
@@ -374,7 +356,7 @@ pthread_mutex_destroy(&mutex);
 两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_mutex_destroy()`销毁(两者的内存分配策略依赖于具体的`pthreads`实现，可能动态方法会在堆上申请空间——未经证实)。
 
 ----------
-####<a id="mutex_lock_unlock"></a>互斥量的加锁(lock)与解锁(unlock)####
+###互斥量的加锁(lock)与解锁(unlock)###
 {% highlight cpp %}
 /**
  * 加锁互斥量，如果互斥量已经被锁住，阻塞当前线程直到互斥量被解锁
@@ -408,11 +390,11 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex);
 使用`pthread_mutex_unlock()`时应当注意，只有锁住互斥量的线程才能解锁该互斥量，否则会发生错误。
 
 ----------
-####<a id="mutex_avoid_deadlock"></a>避免死锁####
+###避免死锁###
 http://www2.chrishardick.com:1099/Notes/Computing/C/pthreads/mutexes.html
 
 ----------
-####<a id="mutex_sample"></a>Sample####
+###Sample###
 下面这个例子中，若干线程调用`pthread_mutex_lock()`，若干线程调用`pthread_mutex_trylock()`，同时记录`pthread_mutex_trylock()`执行失败的次数。
 
 {% highlight cpp %}
@@ -517,10 +499,10 @@ Total times pthread_mutex_trylock() failed = 2193647.
 Sum = 100100000.
 Actual sum = 100100000.
 {% endhighlight %}
-###<a id="cond_var"></a>Condition variables###
+##Condition variables##
 条件变量和互斥量一样，也提供对共享数据的同步，唯一区别是前者有条件地进行同步(条件等待->条件满足->发信号->被唤醒)。如果不使用条件变量，要实现相同功能，需要在代码中不停地轮询(polling)，直到条件满足，这显然很浪费CPU。
 
-####<a id="cond_var_create_destroy"></a>条件变量的创建与销毁####
+###条件变量的创建与销毁###
 {% highlight cpp %}
 /**
  * 用参数attr初始化条件变量，若attr为NULL，将以默认值初始化cond
@@ -541,11 +523,11 @@ int pthread_cond_destroy(pthread_cond_t *cond);
 {% endhighlight %}
 初始化条件变量的方式有两种：
 
-1. 静态初始化
+* 静态初始化
 {% highlight cpp %}
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 {% endhighlight %}
-2. 动态初始化
+* 动态初始化
 {% highlight cpp %}
 pthread_cond_t cond;
 pthread_cond_init(&cond, NULL); // pthread_cont_init(&cond, &attr);
@@ -555,7 +537,7 @@ pthread_cond_destroy(&cond);
 两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_cond_destroy()`销毁。
 
 ----------
-####<a id="cond_var_wait_signal"></a>条件变量的等待(wait)和发信号(signal)####
+###条件变量的等待(wait)和发信号(signal)###
 {% highlight cpp %}
 /**
  * 在条件变量cond上阻塞线程
@@ -623,7 +605,7 @@ Q3. [为何要在`pthread_cond_signal()`之前lock mutex？](http://stackoverflo
 
 Q1和Q3是因为condition与共享数据有关，lock mutex是为了保护共享数据。
 
-书\<Programming With POSIX Threads\>中对Q2也讨论过，文中给出的解释是存在**被拦截的唤醒(intercepted wakeup)**和**假唤醒(spurious wakeup)**。关于**被拦截的唤醒**，参见以下多线程代码：
+书《Programming With POSIX Threads》中对Q2也讨论过，文中给出的解释是存在**被拦截的唤醒(intercepted wakeup)**和**假唤醒(spurious wakeup)**。关于**被拦截的唤醒**，参见以下多线程代码：
 
 {% highlight text %}
 Thread A                            Thread B                           Thread C
@@ -646,11 +628,11 @@ pthread_mutex_unlock(&mutex);
 
 可以看到Thread A从被Thread B唤醒到lock mutex这段时间内，被Thread C**偷去了**CPU。当Thread C修改condition并unlock mutex后，Thread A看到的condition已经为`false`了。
 
-正如\<Programming With POSIX Threads\>所说：
+正如《Programming With POSIX Threads》所说：
 > 当线程醒来时，再次测试谓词同样重要。应该总是在循环中等待条件变量，来避免程序错误、多处理器竞争和假唤醒。
 
 ----------
-####<a id="cond_var_sample"></a>Sample####
+###Sample###
 下面这个例子是[生产者-消费者问题](http://en.wikipedia.org/wiki/Producer-consumer_problem)的Pthreads解法，若干个生产者往`buffer`里写内容，若干个消费者从`buffer`中取内容，通过`pthread_cond_broadcast()`唤醒阻塞的生产者/消费者线程。
 {% highlight cpp %}
 #include <pthread.h>
@@ -790,9 +772,9 @@ Producer #7 produces task 18.
 Producer #9 produces task 19.
                                 Consumer #3 consumes task 19.
 {% endhighlight %}
-###<a id="synch"></a>Synchronization###
+##Synchronization##
 
-References:  
+##References##
 [POSIX Threads Programming](https://computing.llnl.gov/tutorials/pthreads/)  
 [Linux 的多线程编程的高效开发经验](http://www.ibm.com/developerworks/cn/linux/l-cn-mthreadps/index.html)  
 [Multithreaded Programming (POSIX pthreads Tutorial)](http://randu.org/tutorials/threads/)

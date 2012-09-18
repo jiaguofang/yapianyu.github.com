@@ -1,33 +1,33 @@
 ---
 layout: post
-title: 编程获取获取CPU使用率、内存使用量、uptime、线程数等系统状态参数
+title: 获取获取CPU使用率、内存使用量、uptime、线程数等系统状态参数
 category: os
 tags: CPU使用率 内存使用量 uptime 线程数 C++
 ---
 
 公司某项目需要监控系统以及内部进程的运行状况，谷歌一番之后在这里做个总结。内容涉及：
 
-* 系统CPU使用率  
-* 系统物理内存总大小  
-* 系统物理内存使用量  
-* 进程CPU使用率  
-* 进程物理内存使用量  
-* 进程uptime  
+* 系统CPU使用率
+* 系统物理内存总大小
+* 系统物理内存使用量
+* 进程CPU使用率
+* 进程物理内存使用量
+* 进程uptime
 * 进程内部的线程数
 
 文中会给出Windows和Linux平台上的解决办法。
 
-###系统CPU使用率###
+##系统CPU使用率##
 关于CPU使用率，首先必须澄清并不存在现成的API，如GetSystemCPUUsage()或者GetProcessCPUUsage()。当我们打开任务管理器时，可以看到：
 
 * CPU使用率包括系统的CPU使用率和进程的CPU使用率
 * CPU使用率每隔一段时间会刷新一次
 
-![](/image/windows-task-manager.png)
+![](/images/windows-task-manager.png)
 
 也就是说，CPU使用率是采样周期内CPU忙（非空闲）的时间和采样周期的比值，是一个平均值。因此，系统CPU使用率可以描述为采样周期内系统运行于非idle状态下的时间和采样周期的比值。
 
-####Windiws####
+###Windows###
 函数[GetSystemTimes()](http://msdn.microsoft.com/en-us/library/ms724400\(VS.85\).aspx)可以用来获取系统idle的时间、运行在kernel和user模式下的时间，MSDN是这样描述的：
 {% highlight cpp %}
 /**
@@ -58,7 +58,7 @@ BOOL WINAPI GetSystemTimes(
 
 因此，**CPU% = (Δt\_kernel + Δt\_user - Δt\_idle) / (Δt\_kernel + Δt\_user)**。
 
-####Linux####
+###Linux###
 Linux将各种系统状态信息保存在文件/proc/stat中，比如CPU运行情况、中断统计、启动时间、上下文切换次数、运行中的进程等等。在我的ubuntu 11.10中运行`cat /proc/stat`，输出：
 {% highlight text %}
 > cat /proc/stat
@@ -83,7 +83,7 @@ softirq 15551046 0 3479000 34799 511332 489536 0 21879 2048010 12831 8953659
 
 代码参见 [double SystemInfo::GetSystemCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/SystemInfo.cpp)
 
-###系统物理内存总大小###
+##系统物理内存总大小##
 Windows和Linux有各自的API：[GlobalMemoryStatusEx()](http://msdn.microsoft.com/en-us/library/windows/desktop/aa366589\(v=vs.85\).aspx)和[sysinfo()](http://linux.die.net/man/2/sysinfo)。
 
 {% highlight cpp %}
@@ -112,7 +112,7 @@ double SystemInfo::GetSystemMemoryTotal()
 }
 {% endhighlight %}
 
-###系统物理内存使用量###
+##系统物理内存使用量##
 同上！
 
 {% highlight cpp %}
@@ -141,10 +141,10 @@ double SystemInfo::GetSystemMemoryUsed()
 }
 {% endhighlight %}
 
-###进程CPU使用率###
+##进程CPU使用率##
 进程的CPU使用率与系统的计算方法类似，只不过改为采样周期内进程运行于处理器上的时间和采样周期的比值。
 
-####Windiws####
+###Windiws###
 函数[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)可以用来获取进程在kernel和user模式下的运行时间。MSDN是这样描述的：
 {% highlight cpp %}
 /**
@@ -170,7 +170,7 @@ BOOL WINAPI GetProcessTimes(
 
 因此，**CPU% = (Δt\_proc\_kernel + Δt\_proc\_user) / (Δt\_sys\_kernel + Δt\_sys\_user)**。
 
-####Linux####
+###Linux###
 Linux下可以通过读取文件/proc/[pid]/stat获得进程在kernel和user模式下的运行时间。在我的ubuntu 11.10中运行`cat /proc/3761/stat`，输出：
 {% highlight cpp %}
 > cat /proc/3761/stat
@@ -190,8 +190,8 @@ Linux下可以通过读取文件/proc/[pid]/stat获得进程在kernel和user模�
 
 代码参见 [double ProcessInfo::GetProcessCPUUsage()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
 
-###进程物理内存使用量###
-####Windows####
+##进程物理内存使用量##
+###Windows###
 结构体[PROCESS_MEMORY_COUNTERS](http://msdn.microsoft.com/en-us/library/windows/desktop/ms684877\(v=vs.85\).aspx)的属性WorkingSetSize表示进程占用的物理内存大小，可以通过函数[GetProcessMemoryInfo()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683219\(v=vs.85\).aspx)获取。其定义如下：
 {% highlight cpp %}
 typedef struct _PROCESS_MEMORY_COUNTERS {
@@ -208,7 +208,7 @@ typedef struct _PROCESS_MEMORY_COUNTERS {
 } PROCESS_MEMORY_COUNTERS, *PPROCESS_MEMORY_COUNTERS;
 {% endhighlight %}
 
-####Linux####
+###Linux###
 文件/proc/[pid]/status中以VmRSS开头的一行表示进程占用的物理内存大小，示例如下：
 {% highlight text %}
 > cat /proc/1730/status
@@ -239,11 +239,11 @@ SigQ:   0/15999
 
 代码参见 [double ProcessInfo::GetProcessMemoryUsed()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
 
-###进程uptime###
-####Windows####
+##进程uptime##
+###Windows###
 函数[GetProcessTimes()](http://msdn.microsoft.com/en-us/library/windows/desktop/ms683223\(v=vs.85\).aspx)可以获取进程的创建时间，再调用函数[GetSystemTimeAsFileTime](http://msdn.microsoft.com/en-us/library/windows/desktop/ms724397\(v=vs.85\).aspx)可以得到系统的当前时间，两者相减就是进程的uptime。
 
-####Linux####
+###Linux###
 文件/proc/[pid]/stat的第22个参数[starttime](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)表示进程的起始时间（自系统启动后，单位jiffies），再调用[sysinfo()](http://linux.die.net/man/2/sysinfo)可以得到系统的运行时间（自系统启动后，单位s），两者单位统一后相减就是进程的uptime。
 
 > starttime %llu (was %lu before Linux 2.6)  
@@ -251,7 +251,7 @@ SigQ:   0/15999
 
 代码参见 [double ProcessInfo::GetProcessUptime()](https://github.com/yapianyu/system-metrics/blob/master/src/ProcessInfo.cpp)
 
-###进程内部的线程数###
+##进程内部的线程数##
 文件/proc/[pid]/stat的第20个参数[num_threads](http://www.kernel.org/doc/man-pages/online/pages/man5/proc.5.html)表示进程内部的线程数，直接读取并解析即可。
 
 > num_threads %ld  
@@ -308,7 +308,7 @@ unsigned long ProcessInfo::GetProcessThreadCount()
 }
 {% endhighlight %}
 
-###扩展阅读——System Idle Process###
+##扩展阅读——System Idle Process##
 之前一直没搞明白Windows空闲进程的含义，于是搬来wiki上对[System Idle Process](http://en.wikipedia.org/wiki/System_Idle_Process)的解释，如下：
 
 > In Windows NT operating systems, the System Idle Process contains one or more kernel threads which run when no other runnable thread can be scheduled on a CPU. For example, there may be no runnable thread in the system, or all runnable threads are already running on a different CPU. In a multiprocessor system, there is one idle thread associated with each CPU.

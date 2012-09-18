@@ -7,7 +7,7 @@ tags: C++ 构造函数 析构函数 异常 栈回退 智能指针
 
 之前似乎从未考虑过能否在构造函数和析构函数中抛出异常？会有什么后果？所以花了点时间研究了一下，找资料时恰好在《More Effective C++》条款10: *Prevent resource leaksinconstructors*和条款11: *Prevent exceptions from leaving destructors*找到类似章节，遂搬来使用。
 
-###构造函数抛出异常###
+##构造函数抛出异常##
 我们知道构造函数没有返回值，所以当构造函数执行失败时(比如参数错误，运行时错误等等)，为了**通知调用者**，抛出异常是最好的选择。
 
 举个例子：
@@ -198,10 +198,10 @@ Exception from Parent!
 
 有几点可以发现：
 
-1\. 打印结果来自`m_son`的析构和`main()`函数中异常的捕捉。  
+1. 打印结果来自`m_son`的析构和`main()`函数中异常的捕捉。  
 `m_son`被析构依赖于异常处理的栈回退([Stack Unwind](http://en.wikibooks.org/wiki/C%2B%2B_Programming/Exception_Handling#Stack_unwinding))机制，主要用来确保异常被捕捉之前所有本地变量(local or stack variables)的析构函数都会被调用到。
 
-2\. 第53行`m_daughter(new Daughter(daughter))`发生内存泄漏，说明`~Parent()`没有被调用，从而导致`m_daughter`没有被析构。  
+2. 第53行`m_daughter(new Daughter(daughter))`发生内存泄漏，说明`~Parent()`没有被调用，从而导致`m_daughter`没有被析构。  
 按照C++标准，**尚未完全构造好的对象，其析构函数永远不会被调用**。因此由于`Parent`的构造函数抛出异常，其析构函数永远不会被调用。进一步发现对于`Parent* p = new Parent("Li Lei", "Han Meimei")`，一旦异常抛出，p的值依然是null，即使在catch里调用`delete p`也不会调用`Parent`的析构函数。
 
 因此，为了将`m_daughter`析构掉，唯一可以做的就是在抛出异常时自己捕捉，自己清理，之后将异常重新抛出。
@@ -372,9 +372,10 @@ int main()
 }
 {% endhighlight%}
 
-###析构函数抛出异常###
-《More Effective C++》条款11指出，在两种情况下析构函数会被调用：  
-1. 在正常情况下被销毁，也就是当它离开了它的生存空间(Scope)或是被明确地删除(delete)；  
+##析构函数抛出异常##
+《More Effective C++》条款11指出，在两种情况下析构函数会被调用：
+
+1. 在正常情况下被销毁，也就是当它离开了它的生存空间(Scope)或是被明确地删除(delete)；
 2. 被exception处理机制——也就是被exception传播过程中的栈回退(Stack Unwind)机制——销毁。
 
 在第2种情况下，如果栈回退过程中某个析构函数也抛出异常，C++会调用`terminate()`函数，直接将程序终止掉(太狠了)。
@@ -463,18 +464,20 @@ Aborted
 
 可以看到程序不仅被终止，而且还有内存泄漏(析构函数`~Baby()`没有执行完整)。**因此强烈建议不要在析构函数中抛出异常，否则后果自负！**。
 
-###结论###
-当构造函数执行失败时，勇敢地抛出异常。此时：  
-1. 抛出异常的那个类的析构函数永远不会被调用；  
-2. 所有已构造完成的成员对象的析构函数会被自动调用；  
-3. 当前被构造的对象(如`Parent`)在抛出异常后，所占用的内存会被自动释放掉；  
+##结论##
+当构造函数执行失败时，勇敢地抛出异常。此时：
+
+1. 抛出异常的那个类的析构函数永远不会被调用；
+2. 所有已构造完成的成员对象的析构函数会被自动调用；
+3. 当前被构造的对象(如`Parent`)在抛出异常后，所占用的内存会被自动释放掉；
 4. 良好的做法是，当构造函数中抛出异常，立即捕捉掉，同时释放内存，最后重新抛出。当然释放内存的操作可以交给智能指针管理。
 
-对于析构函数，我们应该全力阻止其抛出异常，因为：  
-1. 这样可以避免`terminate()`函数在exception传播过程的栈回退机制中被调用；  
+对于析构函数，我们应该全力阻止其抛出异常，因为：
+
+1. 这样可以避免`terminate()`函数在exception传播过程的栈回退机制中被调用；
 2. 可以确保析构函数完成其应该完成的所有任务，不会中途退出。
 
-References:  
+##References##
 [C++ FAQ 17.8 How can I handle a constructor that fails?](http://www.parashift.com/c++-faq-lite/ctors-can-throw.html)  
 [C++ FAQ 17.10 How should I handle resources if my constructors may throw exceptions?](http://www.parashift.com/c++-faq-lite/selfcleaning-members.html)  
 [Will the below code cause memory leak in c++](http://stackoverflow.com/questions/147572/will-the-below-code-cause-memory-leak-in-c)  

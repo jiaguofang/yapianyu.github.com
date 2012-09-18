@@ -7,10 +7,10 @@ tags: C++ 智能指针 内存泄漏
 
 在堆上申请内存就像拿信用卡透支，如果隔三岔五透支(申请内存)却不还款(释放内存)，迟早有一天会达到上限，到时候再想透支就不行了(Out of Memory)。如果不用智能指针，堆上申请的内存必须手动释放，否则就是内存泄漏。智能指针就像自动还款一样，在适当的时机向银行归还透支金额(释放内存)。
 
-###重新造一个轮子###
+##重新造一个轮子##
 智能指针的原理很简单，即在指针外面增加一层包装类(wrapper)，一般来说此类的对象都在栈上生成，当它被自动回收的时候，将指针指向的内存也释放掉。
 
-####引用计数####
+###引用计数###
 引用计数用来记录原始指针指向的内存当前被引用的次数。当引用计数减为0时，通过调用delete this显式地将自己回收。
 
 {% highlight cpp %}
@@ -68,7 +68,7 @@ protected:
 };
 {% endhighlight %}
 
-####SmartPtr####
+###SmartPtr###
 SmartPtr被定义为类模板，可以接收任何继承自ReferenceCounted的用户类。
 {% highlight cpp %}
 #ifndef SMARTPTR_H
@@ -193,7 +193,7 @@ void SmartPtr<T>::Dispose()
 #endif
 {% endhighlight %}
 
-####测试代码####
+###测试代码###
 {% highlight cpp %}
 #include "SmartPtr.h"
 #include "MyClass.h"
@@ -228,5 +228,5 @@ void main(void)
 }
 {% endhighlight %}
 
-###STL智能指针###
+##STL智能指针##
 http://www.codeguru.com/cpp/cpp/cpp_mfc/stl/article.php/c15361/A-TR1-Tutorial-Smart-Pointers.htm

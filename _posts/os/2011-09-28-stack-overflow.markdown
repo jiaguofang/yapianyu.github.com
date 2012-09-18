@@ -7,7 +7,7 @@ tags: Stack Overflow
 
 堆栈溢出的本质是**在某次函数调用中，编译器分配的空间超过了堆栈可以允许的范围**。堆栈的大小和许多因素有关：编程语言、机器架构、多线程……操作系统为每个线程分配独立的线程栈，一般情况下为1M。
 
-###较大的堆栈变量###
+##较大的堆栈变量##
 局部变量一般在堆栈上创建，但是如果局部变量的size太大，比如int a[1000000]，就会发生堆栈溢出。这种情况下，最好从堆上分配这些空间。
 {% highlight cpp %}
 void foo()
@@ -17,7 +17,7 @@ void foo()
 }
 {% endhighlight %}
 
-###递归(Recursion)层数太深###
+##递归(Recursion)层数太深##
 无论堆栈大小是1M还是多少，总是有限的。从函数调用中栈帧的变化可以看出，每次递归调用都会将一些必要的信息保存到栈帧，比如寄存器ebp、局部变量、参数、返回地址等等。这些信息再少也会占用一定空间，因此，递归层数过深最终会耗尽堆栈资源，并导致堆栈溢出。
 {% highlight cpp %}
 #include <stdio.h>
@@ -84,6 +84,6 @@ SumTail:
 
 尾递归有几种优化方式，上述用到的是转化为循环处理，还有一种是消除堆栈法，暂时不做介绍。
 
-References:  
+##References##
 [http://en.wikipedia.org/wiki/Stack\_overflow](http://en.wikipedia.org/wiki/Stack_overflow)  
 [http://en.wikipedia.org/wiki/Tail\_recursion](http://en.wikipedia.org/wiki/Tail_recursion)
