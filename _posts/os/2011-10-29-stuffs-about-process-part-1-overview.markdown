@@ -40,7 +40,7 @@ static int cntActiveUsers; // 未初始化的static变量
 char * gonzo = "God's own prototype"; // gnozo是已初始化的全局变量，"God's own prototype"是文字常量
 static int cntWorkerBees = 10; // 已初始化的static变量
 {% endhighlight %}
-![](/images/mapping-binary-images.png)
+![](/images/mapping-binary-image.png)
 
 ##进程调度##
 进程在执行时会改变状态。每个进程可能处于下列状态之一：
