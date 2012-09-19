@@ -322,11 +322,11 @@ strong {
 
 /**************目录导航**************/
 #menuIndex {position:fixed;top:134px;width:auto;margin-left:436px;left:50%;}
-#menuIndex a {display:block;border:none;color:#CBC7BB;}
+#menuIndex a {display:block;border:none;color:white;}
 /*#menuIndex a:hover {text-decoration:none;}*/
 #menuIndex ul {list-style:none;}
 #menuIndex ul li{font-size:12px;margin-bottom:5px;/*word-wrap:break-word;*/}
-#menuIndex ul li.on{background-color:#3B3127}
+#menuIndex ul li.on{background-color:#444444}
 #menuIndex li.h1{font-size:14px;font-weight:normal;}
 #menuIndex li.h3{padding-left:15px;}
 

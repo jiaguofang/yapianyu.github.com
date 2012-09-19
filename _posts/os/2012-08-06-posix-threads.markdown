@@ -123,7 +123,6 @@ int pthread_attr_getguardsize(const pthread_attr_t *attr, size_t *guardsize);
 int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize);
 {% endhighlight %}
 
-----------
 ###线程的等待(join)和分离(detach)###
 {% highlight cpp %}
 /**
@@ -184,7 +183,6 @@ Hello World!
 
 > 一旦pthread_join获得返回值，终止线程就被pthread_join函数分离，并且可能在pthread_join函数返回前被回收。这意味着，返回值一定不要是与终止线程堆栈相关的堆栈地址，因为该地址上的值可能在调用线程能够访问之前就被覆盖了。
 
------------
 ###其它函数###
 {% highlight cpp %}
 /**
@@ -210,7 +208,6 @@ int pthread_equal(pthread_t t1, pthread_t t2);
 
 > Pthread数据类型是不透明的，我们不应该对其实现做任何假设，只能按照标准中描述的方式使用它们。例如，线程标志符ID可能是整型，或者是浮点型，或者是结构体，任何以不能兼容所有定义的方式使用线程ID的代码都是错误的。
 
------------
 ###Sample###
 {% highlight cpp %}
 #include <pthread.h>
@@ -355,7 +352,6 @@ pthread_mutex_destroy(&mutex);
 
 两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_mutex_destroy()`销毁(两者的内存分配策略依赖于具体的`pthreads`实现，可能动态方法会在堆上申请空间——未经证实)。
 
-----------
 ###互斥量的加锁(lock)与解锁(unlock)###
 {% highlight cpp %}
 /**
@@ -389,11 +385,9 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex);
 
 使用`pthread_mutex_unlock()`时应当注意，只有锁住互斥量的线程才能解锁该互斥量，否则会发生错误。
 
-----------
 ###避免死锁###
 http://www2.chrishardick.com:1099/Notes/Computing/C/pthreads/mutexes.html
 
-----------
 ###Sample###
 下面这个例子中，若干线程调用`pthread_mutex_lock()`，若干线程调用`pthread_mutex_trylock()`，同时记录`pthread_mutex_trylock()`执行失败的次数。
 
@@ -536,7 +530,6 @@ pthread_cond_destroy(&cond);
 
 两者的的区别在于，动态初始化可以设置属性`attr`，但是需要调用`pthread_cond_destroy()`销毁。
 
-----------
 ###条件变量的等待(wait)和发信号(signal)###
 {% highlight cpp %}
 /**
@@ -631,7 +624,6 @@ pthread_mutex_unlock(&mutex);
 正如《Programming With POSIX Threads》所说：
 > 当线程醒来时，再次测试谓词同样重要。应该总是在循环中等待条件变量，来避免程序错误、多处理器竞争和假唤醒。
 
-----------
 ###Sample###
 下面这个例子是[生产者-消费者问题](http://en.wikipedia.org/wiki/Producer-consumer_problem)的Pthreads解法，若干个生产者往`buffer`里写内容，若干个消费者从`buffer`中取内容，通过`pthread_cond_broadcast()`唤醒阻塞的生产者/消费者线程。
 {% highlight cpp %}
