@@ -327,7 +327,7 @@ strong {
 
 /**************目录导航**************/
 #menuIndex {position:fixed;top:134px;width:auto;margin-left:436px;left:50%;}
-#menuIndex a {display:block;border:none;color:white;}
+#menuIndex a {display:block;border:none;}
 /*#menuIndex a:hover {text-decoration:none;}*/
 #menuIndex ul {list-style:none;}
 #menuIndex ul li{font-size:12px;margin-bottom:5px;/*word-wrap:break-word;*/}
