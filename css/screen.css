@@ -61,7 +61,7 @@ a,
 a:visited {
   color: #333;
   text-decoration: none;
-  border-bottom: 1px dotted #333;
+  border-bottom: 1px dashed #333;
 }
 
 a:hover {

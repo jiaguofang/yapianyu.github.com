@@ -15,7 +15,7 @@ tags: TCP UDP IP
 
 以我目前的功力，应该暂时处于第1阶段。Anyway, this is just a beginning!
 
-##TCP/IP模型及相关协议##
+##TCP/IP模型##
 **[TCP/IP模型](http://en.wikipedia.org/wiki/TCP/IP)**(TCP/IP model)是一个四层协议模型，自下而上依次为**[链路层](http://en.wikipedia.org/wiki/Link_layer)**→**[网络层](http://en.wikipedia.org/wiki/Internet_layer)**→**[传输层](http://en.wikipedia.org/wiki/Transport_layer)**→**[应用层](http://en.wikipedia.org/wiki/Application_layer)**。但是**TCP/IP模型与TCP和IP协议并无必然联系**，并不一定要使用TCP和IP协议，比如网络层可以是ICMP协议，传输层可以是UDP协议，之所以这样叫是因为TCP和IP协议是最早被定义的，并且是最重要的两个协议。
 
 **[协议族](http://en.wikipedia.org/wiki/Internet_protocol_suite)**(Protocol suite)是一组不同层次上的多个协议的组合，比如TCP/IP。一个**[协议栈](http://en.wikipedia.org/wiki/Protocol_stack)**(Protocol stack)是对协议族的具体实现，比如HTTP + TCP + IP + Ethernet protocol，POP3 + TCP + IP + Ethernet protocol，UDP + IP + Ethernet protocol等等。或者说协议族是对协议的定义，协议栈是它们的软件实现。
