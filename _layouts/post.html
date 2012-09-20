@@ -41,9 +41,8 @@ body_id: post
   </div>
 </article>
 <script type="text/javascript">
-    window.onerror = function (desc,page,line,chr)
-{ alert('Desc:'+desc+', Line:'+line+', chr:'+ chr); }
     $(document).ready(function(){
+        window.onerror = function (desc,page,line,chr){ alert('Desc:'+desc+', Li    ne:'+line+', chr:'+ chr); };
         if($('h2').length >= 1){
             var h2 = [],h3 = [],tmpl = '<ul>',h2index = 0;
 
