@@ -49,6 +49,11 @@ h3 {
   font-size: 160%;
 }
 
+h4 {
+  font-family: 'Vollkorn', Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 140%;
+}
+
 p, ul, ol, dl, pre, blockquote, table, form {
   margin: 8px 0;
 }
