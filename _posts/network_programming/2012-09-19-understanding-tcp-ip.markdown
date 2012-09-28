@@ -41,11 +41,11 @@ tags: TCP UDP IP
 TCP通过如下方式提供可靠性：
 
 * 应用数据被分割成TCP认为最适合发送的数据块。  
-  注：因为是流服务，所以可以任意分割任意合并
+  PS：因为是流服务，所以可以任意分割任意合并
 * 当TCP发出一个段后，它启动一个定时器，等待目的端确认收到这个报文段。如果不能及时收到一个确认，将重发这个报文段。  
-  注：超时和重传策略
+  PS：超时和重传策略
 * 当TCP收到发自TCP连接另一端的数据，它将发送一个确认。  
-  注：接收端的确认
+  PS：接收端的确认
 * TCP将保持它首部和数据的检验和。这是一个端到端的检验和，目的是检测数据在传输过程中的任何变化。如果收到段的检验和有差错，TCP将丢弃这个文段和不确认收到此报文段(希望发端超时并重发)。
 * 既然TCP报文段作为IP数据报来传输，而IP数据报的到达可能会失序，因此TCP报文段的到达也可能会失序。如果必要，TCP将对收到的数据进行重新排序，将收到的数据以正确的顺序交给应用层。
 * 既然IP数据报会发生重复，TCP的接收端必须丢弃重复的数据。
@@ -56,18 +56,34 @@ TCP通过三次握手(Three-way handshake)建立连接：
 
 ![TCP three-way handshake](/images/tcp-three-way-handshake.gif)
 
-1. 客户端发送**SYN**到服务器，同时将`sequence number`设置为`client_ISN`
-2. 服务器发送**SYN+ACK**作为应答，同时将`sequence number`设置为`server_ISN`，将`acknowledgment number`设置为`client_ISN+1`
-3. 客户端发送**ACK**作为应答，同时将`acknowledgment number`设置为`server_ISN+1`
+1. 客户端发送**SYN**到服务器，`sequence number = client_ISN`
+2. 服务器发送**SYN+ACK**作为应答，`sequence number = server_ISN`，`acknowledgment number = client_ISN + 1`
+3. 客户端发送**ACK**作为应答，`acknowledgment number = server_ISN + 1`
 
 TCP为应用层提供[全双工](http://en.wikipedia.org/wiki/Full-duplex#Full-duplex)(full-duplex)服务，数据能在两个方向上独立地进行传输。因此，连接的每一端必须保持每个方向上的传输数据序号。当建立一个新的连接时，双方都应该发送**SYN**，并将`sequence number`设为本方的ISN(其值随系统时间而变化)。接收到**SYN**后，双方应发送**ACK**作为应答，并将`acknowledgment number`设为对方`ISN+1`。
 
-为什么SYN、FIN需要占用一个字节，而ACK不需要？
+以太网[最大传输单元MTU](http://en.wikipedia.org/wiki/Maximum_transmission_unit)(Maximum transmission unit)为1500字节，两台主机间的路径上最小的MTU称为路径MTU(path MTU)。两台主机之间的路径MTU不一定是个常数，它取决于当时所选择的路由。由于选路不一定是对称的，因此路径MTU在两个方向上不一定是一致的。
+
+建立连接时，双方都要通告各自的[最大报文段长度MSS](http://en.wikipedia.org/wiki/Maximum_segment_size)(Maximum segment size)，表示能接受的每个TCP分段中的最大数据量。MSS经常设置成外出接口上的MTU减去IP和TCP头部的固定长度，从而避免分片。之所以要避免分片，是因为起始端系统无法知道数据报是如何被分片的，所以即使只丢失一个分片，也要重传整个数据报。
+
+但是即使这样，还是会出现分片，比如中间网络的MTU比两端MSS都要小。使用路径上的MTU发现机制可以解决这个问题，在双方交换MSS后，发送带DF标志位的数据包，如果发生ICMP差错，则根据ICMP的MTU字段重新设置MSS并发送数据。
+
+
+ATT：为什么SYN、FIN需要占用一个字节，而ACK不需要？
 没有数据的数据包，ACK需要加1吗？
 
 ###TCP连接的终止###
 TCP通过四次握手(Four-way handshake)终止连接：
 
 ![TCP connection termination](/images/tcp-connection-termination.gif)
+
+1. 客户端发送**FIN**到服务器，`sequence number = m`
+2. 服务器发送**ACK**作为应答，`acknowledgment number = m + 1`  
+   PS：客户端处于**半关闭状态**，只能接收数据，不能发送数据
+3. 服务器发送**FIN**到客户端，`sequence number = n`
+4. 客户端发送**ACK**作为应答，`acknowledgment number = n + 1`  
+   PS：连接正式终止
+
+由于TCP连接是全双工，每个方向必须单独地进行关闭，因此必须经过**FIN**->**ACK**->**FIN**->**ACK**四次握手才能彻底关闭连接。也可以合并step 2和step 3的数据包，即在一个数据包中同时设置**FIN**和**ACK**，这是最常见的做法，只需要三次握手。
 
 ###Wireshark实时会话图###
