@@ -62,11 +62,11 @@ TCP通过三次握手(Three-way handshake)建立连接：
 
 TCP为应用层提供[全双工](http://en.wikipedia.org/wiki/Full-duplex#Full-duplex)(full-duplex)服务，数据能在两个方向上独立地进行传输。因此，连接的每一端必须保持每个方向上的传输数据序号。当建立一个新的连接时，双方都应该发送**SYN**，并将`sequence number`设为本方的ISN(其值随系统时间而变化)。接收到**SYN**后，双方应发送**ACK**作为应答，并将`acknowledgment number`设为对方`ISN+1`。
 
-以太网[最大传输单元MTU](http://en.wikipedia.org/wiki/Maximum_transmission_unit)(Maximum transmission unit)为1500字节，两台主机间的路径上最小的MTU称为路径MTU(path MTU)。两台主机之间的路径MTU不一定是个常数，它取决于当时所选择的路由。由于选路不一定是对称的，因此路径MTU在两个方向上不一定是一致的。
+以太网**[最大传输单元MTU](http://en.wikipedia.org/wiki/Maximum_transmission_unit)**(Maximum transmission unit)为1500字节，两台主机间的路径上最小的MTU称为**路径MTU**(path MTU)。两台主机之间的路径MTU不一定是个常数，它取决于当时所选择的路由。由于选路不一定是对称的，因此路径MTU在两个方向上不一定是一致的。
 
-建立连接时，双方都要通告各自的[最大报文段长度MSS](http://en.wikipedia.org/wiki/Maximum_segment_size)(Maximum segment size)，表示能接受的每个TCP分段中的最大数据量。MSS经常设置成外出接口上的MTU减去IP和TCP头部的固定长度，从而避免分片。之所以要避免分片，是因为起始端系统无法知道数据报是如何被分片的，所以即使只丢失一个分片，也要重传整个数据报。
+建立连接时，双方都要通告各自的**[最大报文段长度MSS](http://en.wikipedia.org/wiki/Maximum_segment_size)**(Maximum segment size)，表示能接受的每个TCP分段中的最大数据量。MSS经常设置成**外出接口上的MTU减去IP和TCP头部的固定长度**，从而避免分片。之所以要避免分片，是因为起始端系统无法知道数据报是如何被分片的，所以即使只丢失一个分片，也要重传整个数据报。
 
-但是即使这样，还是会出现分片，比如中间网络的MTU比两端MSS都要小。使用路径上的MTU发现机制可以解决这个问题，在双方交换MSS后，发送带DF标志位的数据包，如果发生ICMP差错，则根据ICMP的MTU字段重新设置MSS并发送数据。
+但是即使这样，还是会出现分片，比如中间网络的MTU比两端MSS都要小。使用路径上的MTU发现机制可以解决这个问题，在双方交换MSS后，发送带DF标志位的数据包，如果发生ICMP差错，则根据ICMP的MTU字段重新设置MSS并重复上述步骤。
 
 
 ATT：为什么SYN、FIN需要占用一个字节，而ACK不需要？
@@ -84,6 +84,6 @@ TCP通过四次握手(Four-way handshake)终止连接：
 4. 客户端发送**ACK**作为应答，`acknowledgment number = n + 1`  
    PS：连接正式终止
 
-由于TCP连接是全双工，每个方向必须单独地进行关闭，因此必须经过**FIN**->**ACK**->**FIN**->**ACK**四次握手才能彻底关闭连接。也可以合并step 2和step 3的数据包，即在一个数据包中同时设置**FIN**和**ACK**，这是最常见的做法，只需要三次握手。
+由于TCP连接是全双工，因此每个方向必须单独地进行关闭。理论上需要四次握手才能彻底关闭连接，也可以合并step 2和step 3的数据包，即在一个数据包中同时设置**FIN**和**ACK**，这是最常见的做法，只需要三次握手。
 
 ###Wireshark实时会话图###
