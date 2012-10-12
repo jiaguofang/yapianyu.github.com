@@ -89,12 +89,12 @@ TCP通过四次握手(Four-way handshake)终止连接：
 ###数据的传输###
 
 ####延迟确认####
-TCP的可靠性服务要求接收方对发送方的每个数据包都要作ACK应答，告诉对方已经接收成功。但是大量的ACK数据包会增加网络负担，降低网络利用率。接收方的[延迟确认](http://en.wikipedia.org/wiki/TCP_delayed_acknowledgment)(Delayed ACK)是指在500ms的延迟时间内，合并多个ACK一同发送，或者携带在本方将要发送的数据包中，如果超时则单独发送ACK。
+TCP的可靠性服务要求接收方对发送方的每个数据包都要作ACK应答，告诉对方已经接收成功。但是大量的ACK数据包会增加网络负担，降低网络利用率。接收方的[延迟确认](http://en.wikipedia.org/wiki/TCP_delayed_acknowledgment)(Delayed ACK)是指在500ms的延迟时间内，合并多个ACK一同发送，或者将其携带在本方即将发送的数据包中，如果超时则单独发送ACK。
 
-总结，延迟确认是接收方算法，目的是减少ACK数量。
+PS，延迟确认是接收方算法，目的是减少ACK数量。
 
 ####Nagle算法####
-小包问题(small packet problem)是指发送大量的数据字段字节远远少于头部字节的小数据包。[Nagle算法](http://en.wikipedia.org/wiki/Nagle%27s_algorithm)将合并多个数据包的数据字段一同发送。
+小包问题(small packet problem)是指发送大量的数据字节远远少于头部字节的小数据包。[Nagle算法](http://en.wikipedia.org/wiki/Nagle%27s_algorithm)合并多个数据包的数据字段一同发送。
 
 {%highlight text%}
 if there is new data to send
@@ -110,12 +110,12 @@ if there is new data to send
 end if
 {%endhighlight%}
 
-总结，Nagle算法是发送方算法，目的是减少发送方发送的数据包数量，降低头部字节比重。
+PS，Nagle算法是发送方算法，目的是减少发送方发送的数据包数量，降低头部字节比重。
 
 ####滑动窗口协议####
-[滑动窗口协议](http://en.wikipedia.org/wiki/Sliding_window)(Sliding window protocol)解决了传输效率和流量控制问题。它可以在收到接收方确认之前发送多个数据包，使得网络一直处于忙碌状态，提高了整个网络的吞吐量。同时它允许接收方在拥有容纳足够数据的缓冲之前对传输进行限制，控制了网络流量。
+[滑动窗口协议](http://en.wikipedia.org/wiki/Sliding_window)(Sliding window protocol)解决了传输效率和流量控制问题。它允许在收到接收方确认之前发送多个数据包，使得网络一直处于忙碌状态，提高了整个网络的吞吐量。同时允许接收方在拥有容纳足够数据的缓冲之前对传输进行限制，从而控制网络流量。
 
-TCP窗口大小由头部的Window Size字段表示，最大为pow(2,16)-1=65535个字节。在建立连接的时候，双方会交换各自的窗口大小，同时允许在数据传输过程中对其进行更改。由于TCP是全双工的，所以发送和接收方各自保留一对发送窗口和接收窗口。窗口大小是相对于确认序号的，例如接收方发送ack 129 win 1024，表示已经接收到128字节，同时允许对方发送1024字节。
+TCP窗口大小由头部的Window Size表示，最大为pow(2,16)-1=65535个字节。在建立连接的时候，双方会交换各自的窗口大小，同时允许在数据传输过程中对其进行更改。由于TCP是全双工的，所以发送和接收方各自保留一对发送窗口和接收窗口。窗口大小是相对于确认序号的，例如接收方发送ack 129 win 1024，表示已经接收到128字节，同时允许对方发送1024字节。
 
 ![TCP sliding window](/images/tcp-sliding-window.gif)
 
