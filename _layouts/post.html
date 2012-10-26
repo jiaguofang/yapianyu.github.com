@@ -37,6 +37,9 @@ body_id: post
       </script>
       <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
       <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+      <a id="backToTop" href="#" style='display:none;position:fixed;bottom:35px;overflow:hidden;border:none;' title='Back to Top' onclick="window.scrollTo(0,0);return false;">
+        <img src='/images/back-to-top.png'/>
+      </a>
     </section>
   </div>
 </article>
@@ -44,24 +47,6 @@ body_id: post
     $(document).ready(function(){
         if($('h2').length >= 1){
             var h2 = [],h3 = [],tmpl = '<ul>',h2index = 0;
-
-            var findScrollableElement = function(els) {
-                for (var i = 0, argLength = arguments.length; i < argLength; i++) {
-                    var el = arguments[i],
-                    $scrollElement = $(el);
-                    if ($scrollElement.scrollTop() > 0) {
-                        return $scrollElement;
-                    } else {
-                        $scrollElement.scrollTop(1);
-                        var isScrollable = $scrollElement.scrollTop() > 0;
-                        $scrollElement.scrollTop(0);
-                        if (isScrollable) {
-                            return $scrollElement;
-                        }
-                    }
-                }
-                return [];
-            };
 
             $.each($('h2,h3'),function(index,item){
                 if(item.tagName.toLowerCase() == 'h2'){
@@ -79,64 +64,38 @@ body_id: post
                     }
                     h3[h2index-1].push(h3item);
                 }
-                item.id = 'menuIndex' + index
+                item.id = 'menuIndex' + index;
             });
 
-            //添加h1
-            tmpl += '<li class="h1"><a href="#" data-top="0">'+$('h1').text()+'</a></li>';
-
             for(var i=0;i<h2.length;i++){
-                tmpl += '<li><a href="#" data-id="'+h2[i].id+'">'+h2[i].name+'</a></li>';
+                tmpl += '<li><a href="#'+h2[i].id+'">'+(i+1)+'. '+h2[i].name+'</a></li>';
                 if(h3[i]){
                     for(var j=0;j<h3[i].length;j++){
-                        tmpl += '<li class="h3"><a href="#" data-id="'+h3[i][j].id+'">'+h3[i][j].name+'</a></li>';
+                        tmpl += '<li class="h3"><a href="#'+h3[i][j].id+'">'+(i+1)+'.'+(j+1)+' '+h3[i][j].name+'</a></li>';
                     }
                 }
             }
             tmpl += '</ul>';
 
-            var $scrollable = findScrollableElement('body','html');
-            $('body').append('<div id="menuIndex"></div>');
-            $('#menuIndex').append($(tmpl)).delegate('a','click',function(e){
-                e.preventDefault();
-                var scrollNum = $(this).attr('data-top')/* || $('#'+$(this).attr('data-id')).offset().top*/;
-                //window.scrollTo(0,scrollNum-30);
-                $scrollable.animate({ scrollTop: scrollNum/*-30*/ }, 400, 'swing');
-            })
-
-            //default hightlight item
-            $('#menuIndex li').removeClass('on');
-            $('#menuIndex li').eq(0).addClass('on');
-
-            $(window).load(function(){
-                var scrollTop = [];
-                $.each($('#menuIndex li a'),function(index,item){
-                    if(!$(item).attr('data-top')){
-                        var top = $('#'+$(item).attr('data-id')).offset().top;
-                        scrollTop.push(top);
-                        $(item).attr('data-top',top);
-                    }
-                });
-
-                $(window).scroll(function(){
-                    var nowTop = $(window).scrollTop(),index,length = scrollTop.length;
-                    if(nowTop+5 > scrollTop[length-1]){
-                        index = length
-                    }else{
-                        for(var i=0;i<length;i++){
-                            if(nowTop+5 <= scrollTop[i]){
-                                index = i
-                                break;
-                            }
-                        }
-                    }
-                    $('#menuIndex li').removeClass('on');
-                    $('#menuIndex li').eq(index).addClass('on');
-                });
-            });
-
-            //用js计算屏幕的高度
-            /*$('#menuIndex').css('max-height',$(window).height()-80);*/
+            $('section').prepend('<div id="menuIndex">'+tmpl+'</div>');
         }
+
+        //add back to top button 
+        var bt = $('#backToTop');
+        var sw = $(document.body)[0].clientWidth;
+        var limitsw = (sw - 950) / 2 - 80;
+        if (limitsw > 0){
+          limitsw = parseInt(limitsw);
+          bt.css("right",limitsw);
+        }
+
+        $(window).scroll(function() {
+          var st = $(window).scrollTop();
+          if(st > 30){
+            bt.show();
+          } else{
+            bt.hide();
+          }
+        });
     });
 </script>
