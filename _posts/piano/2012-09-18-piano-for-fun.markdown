@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 我的钢琴曲
-category: life
+category: piano
 ---
 
 ##2012-07-22 处女作##
