@@ -37,7 +37,7 @@ body_id: post
       </script>
       <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
       <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
-      <a id="backToTop" href="#" style='display:none;position:fixed;bottom:35px;overflow:hidden;border:none;' title='Back to Top' onclick="window.scrollTo(0,0);return false;">
+      <a id="backToTop" href="#" style='position:fixed;bottom:15px;border:none;left:50%;margin-left:480px;' title='Back to Top' onclick="window.scrollTo(0,0);return false;">
         <img src='/images/back-to-top.png'/>
       </a>
     </section>
@@ -81,21 +81,12 @@ body_id: post
         }
 
         //add back to top button 
-        var bt = $('#backToTop');
-        var sw = $(document.body)[0].clientWidth;
-        var limitsw = (sw - 950) / 2 - 80;
-        if (limitsw > 0){
-          limitsw = parseInt(limitsw);
-          bt.css("right",limitsw);
-        }
-
         $(window).scroll(function() {
           var st = $(window).scrollTop();
-          if(st > 30){
+          if(st > 30)
             bt.show();
-          } else{
+          else
             bt.hide();
-          }
         });
     });
 </script>

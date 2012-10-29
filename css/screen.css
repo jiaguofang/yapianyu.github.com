@@ -35,23 +35,24 @@ body {
 }
 
 h1 {
-  font-family: 'Vollkorn', Georgia, Cambria, "Times New Roman", Times, serif;
   font-size: 200%;
 }
 
 h2 {
-  font-family: 'Vollkorn', Georgia, Cambria, "Times New Roman", Times, serif;
   font-size: 180%;
 }
 
 h3 {
-  font-family: 'Vollkorn', Georgia, Cambria, "Times New Roman", Times, serif;
   font-size: 160%;
 }
 
 h4 {
-  font-family: 'Vollkorn', Georgia, Cambria, "Times New Roman", Times, serif;
   font-size: 140%;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Vollkorn', Georgia, Cambria, "Times New Roman", Times, serif;
+  overflow: hidden;
 }
 
 p, ul, ol, dl, pre, blockquote, table, form {
