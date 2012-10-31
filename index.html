@@ -14,20 +14,20 @@ title: yapiayu's blog
   博主会记录一些感兴趣的技术和知识，为保证浏览质量，请使用<a href="http://www.google.com/chrome">Chrome</a>浏览器。
   </p>
 </section>
-<section id="links">
-  <h2>Links</h2>
-  这些地方可以找到博主：<a href="mailto:jgfang725@gmail.com">Gmail</a>，<a href="http://www.weibo.com/judefang">Weibo</a>，<a href="http://github.com/yapianyu">Github</a>。
-</section>
 <section id="writings">
-  <h2>Writings</h2>
-  <ul>
-  {% for post in site.posts %}
-    <li class="post">
-      <p>{{ post.date | date: "%b %d, %Y" }}</p>
-      <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
-    </li>
+  {% for category in site.categories %}
+    <p>{{ category[0] | capitalize }}({{ category | last | size }})</p>
+    <ul>
+    {% for post in site.posts %}
+      {% if post.categories[0] == category[0] %}
+        <li class="post">
+          <p>{{ post.date | date: "%m-%d-%Y" }}</p>
+          <h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+        </li>
+      {% endif %}
+    {% endfor %}
+    </ul>
   {% endfor %}
-  </ul>
 </section>
 <footer>
   <p>Copyright 2012 yapianyu</p>

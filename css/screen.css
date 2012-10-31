@@ -157,14 +157,15 @@ strong {
   padding: 1px 5px 0;
 }
 
-#welcome #links {
+/*#welcome #links {
   margin: 40px auto;
-}
+}*/
 
 #welcome #writings ul {
   text-align: left;
   list-style-type: none;
   padding: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 #welcome li.post p {
@@ -172,7 +173,7 @@ strong {
   width: 100px;
   /*text-align: right;*/
   vertical-align: middle;
-  padding: 5px;
+  /*padding: 5px;*/
   font-size: 14px;
   /*color: #407981;
   text-shadow: 0 1px 0 #99ADB1;*/
