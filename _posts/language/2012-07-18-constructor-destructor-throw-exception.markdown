@@ -1,7 +1,7 @@
 ---
 layout: post
 title: C++构造函数和析构函数抛出异常
-category: languages
+category: language
 tags: C++ 构造函数 析构函数 异常 栈回退 智能指针
 ---
 

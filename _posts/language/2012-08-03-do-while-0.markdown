@@ -1,7 +1,7 @@
 ---
 layout: post
 title: do {...} while (0);
-category: languages
+category: language
 tags: C C++ do while
 ---
 

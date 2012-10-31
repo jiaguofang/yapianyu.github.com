@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 理解智能指针(C++ Smart Pointer)
-category: languages
+category: language
 tags: C++ 智能指针 内存泄漏
 ---
 

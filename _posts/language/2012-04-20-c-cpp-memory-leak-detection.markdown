@@ -1,7 +1,7 @@
 ---
 layout: post
 title: C/C++内存泄漏检测
-category: languages
+category: language
 tags: c c++ memory leak
 ---
 
