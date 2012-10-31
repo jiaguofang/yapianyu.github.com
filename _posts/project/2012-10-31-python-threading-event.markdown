@@ -11,8 +11,9 @@ tags: Python thread Event
 
 2. 设计线程类`CheckerThread`，继承自`Python Thread`类。构造函数吸收一个`checker`，在`run()`中调用`checker.check()`方法，执行完毕被挂起一段时间。
 
-3. 读配置，在主程序中构造相应的`checker`，并启动相应的线程。接收用户输入，比如`stop`和`CTRL-C`用来停止程序。
+3. 读配置，在主程序中构造相应的`checker`，并启动相应的线程。接受用户输入，比如`stop`和`CTRL-C`用来停止程序。
 
+原先使用`time.sleep(t)`来实现线程挂起，后来发现不是很好，因为每个`checker`的执行周期可能相差很大——几秒钟到几小时，所以当用户输入`stop`想要停止程序时，必须等待各个线程`sleep`结束，这显然不科学。我需要的功能是能挂起，能中途退出。
 
 {% highlight python %}
 def Event(*args, **kwargs):
