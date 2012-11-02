@@ -31,15 +31,15 @@ void backtrack(int n)
 {
     int* x = new int[n];
     for (int i = 0; i < n; i++)
-        x[i] = 0;
+        x[i] = -1;
 
     int idx = 0;
     while (idx >= 0)
     {
         x[idx]++;
-        if (x[idx] > n)
+        if (x[idx] >= n)
         {
-            x[idx] = 0; // must reset this
+            x[idx] = -1; // must reset this
             idx--; // backtrack
         }
         else if (validate(x, idx + 1)) // pruning...same row, column, diagonal?
