@@ -5,54 +5,83 @@ category: algorithm
 tags: 回溯
 ---
 
-八皇后问题
+回溯法本质上是一种搜索算法。首先定义解空间树，接着构造可能满足条件的分支，并调用剪枝函数验证当前分支是否具备进一步构造的可能性，从而降低搜索复杂度。
+
+##八皇后问题##
+
+> 八皇后问题，是一个古老而著名的问题，是回溯算法的典型例题。该问题是十九世纪著名的数学家高斯1850年提出：在8X8格的国际象棋上摆放八个皇后，使其不能互相攻击，即任意两个皇后都不能处于同一行、同一列或同一斜线上，问有多少种摆法。
+
 {% highlight cpp %}
 #include <iostream>
 #include <cmath>
+#include <vector>
 using namespace std;
 
-void output(int x[], int n)
+void output(vector<int> &v)
 {
-    for (int i = 0; i < n; i++)
-        cout << x[i] << " ";
+    for (int i = 0; i < v.size(); i++)
+        cout << v[i] << " ";
     cout << endl;
 }
 
-bool validate(int x[], int n)
+bool validate(vector<int> &v)
 {
-    for (int i = 0; i < n; i++)
-        for (int j = i + 1; j < n; j++)
-            if (x[i] == x[j] || (j - i) == abs(x[i] - x[j]))
+    for (int i = 0; i < v.size(); i++)
+        for (int j = i + 1; j < v.size(); j++)
+            if (v[i] == v[j] || (j - i) == abs(v[i] - v[j]))
                 return false;
     return true;
 }
 
+/******************************/
+/*        Non-recursive       */
+/******************************/
 void backtrack(int n)
 {
-    int* x = new int[n];
-    for (int i = 0; i < n; i++)
-        x[i] = -1;
-
-    int idx = 0;
-    while (idx >= 0)
+    vector<int> v;
+    v.push_back(-1);
+    while (true)
     {
-        x[idx]++;
-        if (x[idx] >= n)
+        v.back()++; // increase the last element by one
+        if (v.back() == n) // backtrack
         {
-            x[idx] = -1; // must reset this
-            idx--; // backtrack
+            v.pop_back();
+            if (v.empty())
+                break;
         }
-        else if (validate(x, idx + 1)) // pruning...same row, column, diagonal?
+        else if (validate(v)) // prune
         {
-            idx++;
-            if (idx >= n) // find one solution
-            {
-                output(x, n);
-                idx--;
-            }
+            if (v.size() == n) // find one solution
+                output(v);
+            else
+                v.push_back(-1);
         }
     }
-    delete[] x;
+}
+
+/******************************/
+/*         Recursive          */
+/******************************/
+void DFS(vector<int> v, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        v.push_back(i);
+        if (validate(v)) // prune
+        {
+            if (v.size() == n)
+                output(v);
+            else
+                DFS(v, n);
+        }
+        v.pop_back();
+    }
+}
+
+void backtrack(int n)
+{
+    vector<int> v;
+    DFS(v, n);
 }
 
 int main(void)
@@ -61,6 +90,6 @@ int main(void)
 }
 {% endhighlight %}
 
+##背包问题##
 穷举
 组合
-回溯
