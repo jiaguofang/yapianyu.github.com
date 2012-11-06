@@ -41,3 +41,7 @@ int main()
     permute(s, 0);
 }
 {% endhighlight %}
+
+http://www.cnblogs.com/autosar/archive/2012/04/08/2437799.html
+
+http://dongxicheng.org/structure/permutation-combination/
