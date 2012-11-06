@@ -161,14 +161,20 @@ strong {
   margin: 40px auto;
 }*/
 
+#welcome #writings p.category {
+  text-align: right;
+  margin: 0;
+}
+
 #welcome #writings ul {
-  text-align: left;
+/*  text-align: left;*/
   list-style-type: none;
   padding: 0;
+  margin: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-#welcome li.post p {
+#welcome #writings li.post p {
   display: table-cell;
   width: 100px;
   /*text-align: right;*/
@@ -179,7 +185,7 @@ strong {
   text-shadow: 0 1px 0 #99ADB1;*/
 }
 
-#welcome li.post h3 {
+#welcome #writings li.post h3 {
   display: table-cell;
   vertical-align: middle;
   padding: 5px;

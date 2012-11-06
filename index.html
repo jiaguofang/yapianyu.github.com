@@ -16,7 +16,7 @@ title: yapiayu's blog
 </section>
 <section id="writings">
   {% for category in site.categories %}
-    <p>{{ category[0] | capitalize }} ({{ category | last | size }})</p>
+    <p class="category">{{ category[0] | capitalize }} ({{ category | last | size }})</p>
     <ul>
     {% for post in site.posts %}
       {% if post.categories[0] == category[0] %}
