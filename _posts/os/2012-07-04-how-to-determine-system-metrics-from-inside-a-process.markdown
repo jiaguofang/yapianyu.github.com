@@ -2,7 +2,7 @@
 layout: post
 title: 获取获取CPU使用率、内存使用量、uptime、线程数等系统状态参数
 category: os
-tags: CPU使用率 内存使用量 uptime 线程数 C++
+tags: [c++, cpu usage, memory usage, uptime, thread number]
 ---
 
 公司某项目需要监控系统以及内部进程的运行状况，谷歌一番之后在这里做个总结。内容涉及：

@@ -2,7 +2,7 @@
 layout: post
 title: hht算法005. 查找最小的k个数
 category: algorithm
-tags: algorithm
+tags: [algorithm, quick select]
 ---
 
 ##题目##

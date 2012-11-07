@@ -2,7 +2,7 @@
 layout: post
 title: 服务器稳定性检查项目小结
 category: project
-tags: Python thread Event
+tags: [python, thread, event]
 ---
 
 最近做一个服务器稳定性检查的小项目，设计如下：

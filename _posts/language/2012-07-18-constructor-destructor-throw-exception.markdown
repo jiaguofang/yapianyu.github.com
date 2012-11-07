@@ -2,7 +2,7 @@
 layout: post
 title: C++构造函数和析构函数抛出异常
 category: language
-tags: C++ 构造函数 析构函数 异常 栈回退 智能指针
+tags: [c++, constructor, destructor, exception, stack unwind, smart pointer]
 ---
 
 之前似乎从未考虑过能否在构造函数和析构函数中抛出异常？会有什么后果？所以花了点时间研究了一下，找资料时恰好在《More Effective C++》条款10: *Prevent resource leaksinconstructors*和条款11: *Prevent exceptions from leaving destructors*找到类似章节，遂搬来使用。

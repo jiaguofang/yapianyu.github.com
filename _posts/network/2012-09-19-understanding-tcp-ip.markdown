@@ -2,7 +2,7 @@
 layout: post
 title: 理解TCP/IP
 category: network
-tags: TCP UDP IP
+tags: [tcp/ip, udp]
 ---
 
 最近闲来无事，端起两本网络编程的神书《TCP/IP Illustrated, Vol. 1: The Protocols》和《Unix Network Programming, Vol. 1: Networking API》开始看，一些以前不清楚的知识点得到了进一步理解。

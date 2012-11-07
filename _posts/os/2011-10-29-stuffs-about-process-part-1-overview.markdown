@@ -2,7 +2,7 @@
 layout: post
 title: 进程那些事(一)：概述
 category: os
-tags: 进程 堆 栈 虚拟地址空间
+tags: [process, heap, stack, virtual memory space]
 ---
 
 进程是对运行中的程序与一些计算机资源(内存，文件，I/O设备等)和状态(程序计数器，寄存器等)的统称。

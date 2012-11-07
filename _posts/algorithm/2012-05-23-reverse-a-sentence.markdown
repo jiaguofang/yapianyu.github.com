@@ -2,7 +2,7 @@
 layout: post
 title: hht算法007. 翻转句子中单词的顺序
 category: algorithm
-tags: algorithm string
+tags: [algorithm, reverse string]
 ---
 
 ##题目##

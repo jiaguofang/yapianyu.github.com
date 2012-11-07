@@ -2,7 +2,7 @@
 layout: post
 title: 暂定学习计划
 category: essay
-tags: 学习 计划
+tags: [essay, learning, plan]
 ---
 
 刚刚花三四周时间完成了公司某项目的一个小模块，然后……然后就开始闲着了，闲着闲着就开始蛋疼了，蛋疼了就开始胡思乱想。

@@ -2,7 +2,7 @@
 layout: post
 title: hht算法009. 链表中倒数第k个结点
 category: algorithm
-tags: algorithm list
+tags: [algorithm, list]
 ---
 
 ##题目##

@@ -2,7 +2,7 @@
 layout: post
 title: 经典算法之排列组合算法 
 category: algorithm
-tags: 排列 组合
+tags: [algorithm, permutation, combination]
 ---
 
 ##排列##

@@ -2,7 +2,7 @@
 layout: post
 title: hht算法003. 求最大子数组和
 category: algorithm
-tags: algorithm dp
+tags: [algorithm, dynamic programming]
 ---
 
 ##题目##

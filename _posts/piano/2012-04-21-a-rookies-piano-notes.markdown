@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 一只菜鸟的钢琴笔记
-category: piano
+category: [piano]
 ---
 
 ##我所学的##

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 我的钢琴曲
-category: piano
+category: [piano]
 ---
 
 ##天空之城##

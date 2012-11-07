@@ -2,7 +2,7 @@
 layout: post
 title: C/C++内存泄漏检测
 category: language
-tags: c c++ memory leak
+tags: [c, c++, memory leak]
 ---
 
 本文利用MS C-Runtime Library的Debug function对内存泄漏进行检测。

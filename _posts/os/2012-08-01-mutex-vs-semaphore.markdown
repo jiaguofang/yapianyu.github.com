@@ -2,7 +2,7 @@
 layout: post
 title: Mutex和Semaphore的区别
 category: os
-tags: Mutex Semaphore
+tags: [thread, mutex, semaphore]
 ---
 
 http://www.feabhas.com/blog/2009/09/mutex-vs-semaphores-%E2%80%93-part-1-semaphores/

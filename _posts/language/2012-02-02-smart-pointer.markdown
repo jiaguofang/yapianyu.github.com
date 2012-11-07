@@ -2,7 +2,7 @@
 layout: post
 title: 理解智能指针(C++ Smart Pointer)
 category: language
-tags: C++ 智能指针 内存泄漏
+tags: [c++, smart pointer, memory leak]
 ---
 
 在堆上申请内存就像拿信用卡透支，如果隔三岔五透支(申请内存)却不还款(释放内存)，迟早有一天会达到上限，到时候再想透支就不行了(Out of Memory)。如果不用智能指针，堆上申请的内存必须手动释放，否则就是内存泄漏。智能指针就像自动还款一样，在适当的时机向银行归还透支金额(释放内存)。

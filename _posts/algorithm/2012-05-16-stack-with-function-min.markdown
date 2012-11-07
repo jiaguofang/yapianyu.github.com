@@ -2,7 +2,7 @@
 layout: post
 title: hht算法002. 设计包含min函数的栈
 category: algorithm
-tags: algorithm stack
+tags: [algorithm, stack]
 ---
 
 ##题目##

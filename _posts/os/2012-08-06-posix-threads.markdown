@@ -2,7 +2,7 @@
 layout: post
 title: POSIX Threads (Pthreads)
 category: os
-tags: POSIX thread
+tags: [POSIX, thread, mutex, condition variable]
 ---
 
 [POSIX Threads](http://en.wikipedia.org/wiki/POSIX_Threads)(Pthreads)是一套针对线程的POSIX标准，该标准定义了一系列创建和操作线程的API。在很多符合POSIX标准的Unix系OS上都有实现，如FreeBSD，NetBSD，OpenBSD，GNU/Linux，Mac OS X和Solaris。

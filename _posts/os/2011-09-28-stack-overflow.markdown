@@ -2,7 +2,7 @@
 layout: post
 title: 堆栈溢出(Stack Overflow)
 category: os
-tags: Stack Overflow
+tags: [stack overflow]
 ---
 
 堆栈溢出的本质是**在某次函数调用中，编译器分配的空间超过了堆栈可以允许的范围**。堆栈的大小和许多因素有关：编程语言、机器架构、多线程……操作系统为每个线程分配独立的线程栈，一般情况下为1M。

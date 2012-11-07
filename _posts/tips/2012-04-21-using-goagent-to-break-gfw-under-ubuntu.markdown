@@ -2,7 +2,7 @@
 layout: post
 title: Ubuntu下使用goagent翻墙
 category: tips
-tags: ubuntu goagent gfw
+tags: [ubuntu, goagent, gfw]
 ---
 
 在[Xan Peng](http://xanpeng.github.com)的强烈推荐下，终于用上了goagent，在追求真理的道路上又向前迈出了一步。

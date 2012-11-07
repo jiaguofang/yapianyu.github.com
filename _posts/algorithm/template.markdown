@@ -2,7 +2,7 @@
 layout: post
 title: hht算法00. 
 category: algorithm
-tags: algorithm
+tags: [algorithm]
 ---
 
 ###题目###

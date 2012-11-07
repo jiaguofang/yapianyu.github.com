@@ -2,6 +2,6 @@
 layout: post
 title: do {...} while (0);
 category: language
-tags: C C++ do while
+tags: [c, c++, do while]
 ---
 
