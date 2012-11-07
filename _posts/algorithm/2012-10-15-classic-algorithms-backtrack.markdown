@@ -33,6 +33,13 @@ bool validate(vector<int> &v)
     return true;
 }
 
+int main(void)
+{
+    backtrack(8);
+}
+{% endhighlight %}
+
+{% highlight cpp %}
 /******************************/
 /*        Non-recursive       */
 /******************************/
@@ -58,7 +65,9 @@ void backtrack(int n)
         }
     }
 }
+{% endhighlight %}
 
+{% highlight cpp %}
 /******************************/
 /*         Recursive          */
 /******************************/
@@ -82,11 +91,6 @@ void backtrack(int n)
 {
     vector<int> v;
     DFS(v, n);
-}
-
-int main(void)
-{
-    backtrack(8);
 }
 {% endhighlight %}
 
