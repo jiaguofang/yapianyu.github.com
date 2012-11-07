@@ -1,0 +1,13 @@
+---
+body_id: welcome
+layout: default
+title: yapiayu's blog
+---
+
+<ul>
+  {% for tag_data in site.tags %}
+    <li>
+      {{ tag_data[0] }} ({{ tag_data[1].size }})
+    </li>
+  {% endfor %}
+</ul>
