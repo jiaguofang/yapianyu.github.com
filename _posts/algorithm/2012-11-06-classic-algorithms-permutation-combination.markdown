@@ -97,3 +97,29 @@ int main()
 http://www.cnblogs.com/autosar/archive/2012/04/08/2437799.html
 
 http://dongxicheng.org/structure/permutation-combination/
+
+##组合##
+{% highlight cpp %}
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+void combine(char* s, int si, char* d, int di, int n, int m)
+{
+    for (int i = si; i <= strlen(s) - m; i++)
+    {
+        d[di] = s[i];
+        if (m - 1 == 0)
+            cout << d << endl;
+        else
+            combine(s, i + 1, d, di + 1, n - 1, m - 1);
+    }
+}
+
+int main()
+{
+    char s[] = "123456";
+    char d[3] = { 0 };
+    combine(s, 0, d, 0, 6, 2);
+}
+{% endhighlight %}
