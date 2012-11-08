@@ -5,7 +5,7 @@ category: algorithm
 tags: [algorithm, backtrack, eight queen problem, coloring problem]
 ---
 
-回溯法本质上是一种搜索算法。首先定义解空间树，接着构造可能满足条件的分支，并调用剪枝函数验证当前分支是否具备进一步构造的可能性，从而降低搜索复杂度。
+回溯法本质上是一种搜索算法。首先定义解空间树，接着构造可能满足条件的分支，并用剪枝函数验证当前分支是否具备进一步构造的可能性，如果满足则进一步构造，否则回溯到上一层，从而降低搜索复杂度。
 
 ##八皇后问题##
 
@@ -24,6 +24,7 @@ void output(vector<int> &v)
     cout << endl;
 }
 
+// prune function
 bool validate(vector<int> &v)
 {
     for (int i = 0; i < v.size(); i++)
@@ -39,6 +40,35 @@ int main(void)
 }
 {% endhighlight %}
 
+递归算法：每列允许放n个格子，放好一个格子后，验证之前所有的放置是否正确。如果正确则放后面一列，否则挪到下一个格子。当且仅当所有列都放好棋子，并且彼此没有发生冲突，才算得到一个解。
+{% highlight cpp %}
+/******************************/
+/*         Recursive          */
+/******************************/
+void DFS(vector<int> v, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        v.push_back(i);
+        if (validate(v)) // prune
+        {
+            if (v.size() == n)
+                output(v);
+            else
+                DFS(v, n);
+        }
+        v.pop_back();
+    }
+}
+
+void backtrack(int n)
+{
+    vector<int> v;
+    DFS(v, n);
+}
+{% endhighlight %}
+
+非递归算法：用vector(或数组)保存前几次放置的位子，在前几次位子都是正确的前提下，加入一个新的位子，验证这个新位子和之前有没有冲突。如果发生冲突则挪到下一个位子，反复验证直到满足。如果所有情况都试过了还是不满足，则回溯。
 {% highlight cpp %}
 /******************************/
 /*        Non-recursive       */
@@ -64,33 +94,6 @@ void backtrack(int n)
                 v.push_back(-1);
         }
     }
-}
-{% endhighlight %}
-
-{% highlight cpp %}
-/******************************/
-/*         Recursive          */
-/******************************/
-void DFS(vector<int> v, int n)
-{
-    for (int i = 0; i < n; i++)
-    {
-        v.push_back(i);
-        if (validate(v)) // prune
-        {
-            if (v.size() == n)
-                output(v);
-            else
-                DFS(v, n);
-        }
-        v.pop_back();
-    }
-}
-
-void backtrack(int n)
-{
-    vector<int> v;
-    DFS(v, n);
 }
 {% endhighlight %}
 
