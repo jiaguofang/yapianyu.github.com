@@ -59,6 +59,53 @@ int main()
 
 非递归算法：构造法
 http://www.cnblogs.com/autosar/archive/2012/04/08/2437799.html
+#include <iostream>
+#include <cstring>
+#include <cstdlib>
+using namespace std;
+
+template<class T>
+bool next_permutation(T * start, T * end)
+{
+    if (start >= end)
+        return false;
+
+    T* pA = end;
+    while (pA - 1 >= start && *(pA - 1) >= *pA)
+        pA--;
+    if (pA == start)
+        return false;
+    pA--;
+
+    T* pB = end;
+    while (*pA >= *pB)
+        pB--;
+
+    // swap
+    T t = *pA;
+    *pA = *pB;
+    *pB = t;
+
+    // reverse
+    for (T * pFront = pA + 1, *pEnd = end; pFront < pEnd; pFront++, pEnd--)
+    {
+        T t = *pFront;
+        *pFront = *pEnd;
+        *pEnd = t;
+    }
+
+    return true;
+}
+
+int main()
+{
+    char s[] = "123";
+    do
+    {
+        cout << s << endl;
+    } while (next_permutation(s, s + strlen(s) - 1));
+}
+
 
 ###组合(n选m)###
 递归算法：字符集{1，2，3，4}选两个元素的所有组合为12，13，14，23，24，34。方法是，第一轮先取出1，剩下{2，3，4}。接着从{2，3，4}中取2构成12，取3构成13，取4构成14。第二轮先取2，剩下{3，4}。接着从{3，4}中取3构成23，取4构成24。重复上述过程。
