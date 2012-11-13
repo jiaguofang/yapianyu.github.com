@@ -5,8 +5,11 @@ category: algorithm
 tags: [algorithm, permutation, combination]
 ---
 
-###全排列(支持重复元素)###
-递归算法：字符集{1，2，3}的全排列为123，132，213，231，321，312。方法是，先确定第一个位子的数，比如1，剩下{2，3}。接着确定{2，3}中的第一个位子，比如2，剩下{3}。把所有的可能都取一遍就是全排列了。
+###全排列###
+####递归算法(支持重复元素)####
+字符集{1，2，3}的全排列为123，132，213，231，321，312。先确定第一个位子的数，比如1，剩下{2，3}。接着确定{2，3}中的第一个位子，比如2，剩下{3}，那就是123。如果先取3，那就是132。把所有的可能都取一遍就是全排列了。
+
+用递归的思想描述为，枚举第一个数，对后面的数递归地进行全排列。
 
 ![Permutation](/images/permutation-algorithm.png)
 
@@ -57,27 +60,41 @@ int main()
 }
 {% endhighlight %}
 
-非递归算法：构造法
-http://www.cnblogs.com/autosar/archive/2012/04/08/2437799.html
+####非递归算法(支持重复元素)####
+非递归的方法采用构造法，从最小的排列开始，根据前一个排列找到比它略大的排列，假定要找8342666411的下一个排列，可以这样：
+
+1. 从右向左检查相邻的两个数，找到第一对数，使得左边的数小于右边的数，将左边的数记为A——8342666411中的两个数是2和6  
+2. 从右向左查找第一个比A大的数，记为B——8342666411中2右边第一个比2大的是4  
+3. 交换A和B——变为8344666211  
+4. 反转A位置之后的序列顺序——变为8344112666
+
+重复上述步骤，直到找不到A为止。
+
+{% highlight cpp %}
 #include <iostream>
 #include <cstring>
 #include <cstdlib>
 using namespace std;
 
+// transform the range of elements [first, last) into the
+// lexicographically next greater permutation of the elements
 template<class T>
-bool next_permutation(T * start, T * end)
+bool next_permutation(T * first, T * last)
 {
-    if (start >= end)
+    if (first >= last)
         return false;
 
-    T* pA = end;
-    while (pA - 1 >= start && *(pA - 1) >= *pA)
+    // given two adjacent elements [i-1] and [i], scan from right side to left,
+    // find the first pair where [i-1] < [i]
+    T* pA = last - 1;
+    while (pA - 1 >= first && *(pA - 1) >= *pA)
         pA--;
-    if (pA == start)
+    if (pA == first)
         return false;
     pA--;
 
-    T* pB = end;
+    // find the first element larger than pA from right side
+    T* pB = last - 1;
     while (*pA >= *pB)
         pB--;
 
@@ -87,7 +104,7 @@ bool next_permutation(T * start, T * end)
     *pB = t;
 
     // reverse
-    for (T * pFront = pA + 1, *pEnd = end; pFront < pEnd; pFront++, pEnd--)
+    for (T * pFront = pA + 1, *pEnd = last - 1; pFront < pEnd; pFront++, pEnd--)
     {
         T t = *pFront;
         *pFront = *pEnd;
@@ -97,20 +114,32 @@ bool next_permutation(T * start, T * end)
     return true;
 }
 
-int main()
+int compar(const void * a, const void * b)
 {
-    char s[] = "123";
+    return (*(char*) a - *(char*) b);
+}
+
+void permute(char* s)
+{
+    qsort(s, strlen(s), sizeof(char), &compar);
     do
     {
         cout << s << endl;
-    } while (next_permutation(s, s + strlen(s) - 1));
+    } while (next_permutation(s, s + strlen(s)));
 }
 
+int main()
+{
+    char s[] = "12233";
+    permute(s);
+}
+{% endhighlight %}
 
 ###组合(n选m)###
-递归算法：字符集{1，2，3，4}选两个元素的所有组合为12，13，14，23，24，34。方法是，第一轮先取出1，剩下{2，3，4}。接着从{2，3，4}中取2构成12，取3构成13，取4构成14。第二轮先取2，剩下{3，4}。接着从{3，4}中取3构成23，取4构成24。重复上述过程。
+####递归算法####
+字符集{1，2，3，4}选两个元素的所有组合为12，13，14，23，24，34。第一种取法先取第1个位子的数，接着在第2、3、4个位子取1个数(就是12，13，14)。第二种取法先取第2个位子的数，接着在第3、4个位子取1个数(23，24)。第三种取法先取第3个位子的数，接着在第4个位子取1个数(就是34)。
 
-因此，整个过程可以归纳为，第一轮取第一个元素，再从剩下的n-1个元素中选m-1个元素。第二轮取第二个元素，再从剩下的n-2个元素中选m-1个元素。反复做，直到某轮只剩下m个元素，则该轮只有一种取法。
+用递归的思想描述为，从头往尾取一个数，在这个数后面的数中递归地选出m-1个数的组合。
 
 ![Combination](/images/combination-algorithm.png)
 
